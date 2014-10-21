@@ -8,14 +8,7 @@
 
 
 #include "rsdmap.h"
-/*
-RSDMap::RSDMap(double map_sizex, double map_sizey, double mapres, double startx, double starty){
-	map_size_x = map_sizex;
-	map_size_y = map_sizey;
-	map_resolution = mapres;
-	start_x = startx;
-	start_y = starty;
-}*/
+
 
 RSDMap::RSDMap(int NumberOfParticles,double Len_x,double Len_y,double Max_ang, double Measurements_noise, double Movement_noise, double Turning_noise, double map_res){
 
@@ -35,15 +28,6 @@ RSDMap::RSDMap(int NumberOfParticles,double Len_x,double Len_y,double Max_ang, d
 	particle_filter = ParticleFilter(numberOfParticles,len_x,off_x,len_y,off_y,max_ang, measurements_noise, movement_noise, turning_noise);
 }
 
-void RSDMap::templateParticleMarkerUpdate(){
-
-	particle_filter.updateParticlesMarker();
-
-	visualization_msgs::MarkerArray markerArray = particle_filter.getParticlesMarker();
-
-	marker_pub.publish(markerArray);
-}
-
 void RSDMap::publishMap()
 {
 	map_pub.publish(map);
@@ -60,7 +44,7 @@ void RSDMap::createMap(double map_sizex, double map_sizey, double mapres, double
 	double map_resolution = mapres;
 	double start_x = startx;
 	double start_y = starty;
-	ROS_INFO("CreateMap");
+	//ROS_INFO("CreateMap");
 	map.info.width = (uint32_t)(map_size_x / map_resolution);
 	map.info.height= (uint32_t)(map_size_y / map_resolution);
 	map.info.resolution = map_resolution;
@@ -82,9 +66,9 @@ void RSDMap::createMap(double map_sizex, double map_sizey, double mapres, double
 	//4 walls going "vertical"
 	//ramp wall right
 	int start_cord_x = 5.8/map_resolution;
-	int start_cord_y = 3.75/map_resolution;
+	int start_cord_y = 3.70/map_resolution;
 	int end_cord_x = 8.15/map_resolution;
-	int end_cord_y = 3.85/map_resolution;
+	int end_cord_y = 3.90/map_resolution;
 	for(int y = start_cord_y;  y<= end_cord_y; y++){
 		for(int x = start_cord_x;  x <= end_cord_x; x++){
 			map.data[coordinateToIndex(y,x)] = 100;
@@ -92,7 +76,7 @@ void RSDMap::createMap(double map_sizex, double map_sizey, double mapres, double
 	}
 	//ramp wall left
 	start_cord_x = 5.8/map_resolution;
-	start_cord_y = 2.75/map_resolution;
+	start_cord_y = 2.65/map_resolution;
 	end_cord_x = 8.15/map_resolution;
 	end_cord_y = 2.85/map_resolution;
 	for(int y = start_cord_y;  y<= end_cord_y; y++){
@@ -105,7 +89,7 @@ void RSDMap::createMap(double map_sizex, double map_sizey, double mapres, double
 	start_cord_x = 8.2/map_resolution;
 	start_cord_y = 1.9/map_resolution;
 	end_cord_x = 10.1/map_resolution;
-	end_cord_y = 2.05/map_resolution;
+	end_cord_y = 2.10/map_resolution;
 	for(int y = start_cord_y;  y<= end_cord_y; y++){
 		for(int x = start_cord_x;  x <= end_cord_x; x++){
 			map.data[coordinateToIndex(y,x)] = 100;
@@ -136,9 +120,9 @@ void RSDMap::createMap(double map_sizex, double map_sizey, double mapres, double
 
 	//bottom left horizontal wall
 	start_cord_x = 8.1/map_resolution;
-	start_cord_y = 1.95/map_resolution;
-	end_cord_x = 8.2/map_resolution;
-	end_cord_y = 2.75/map_resolution;
+	start_cord_y = 1.85/map_resolution;
+	end_cord_x = 8.25/map_resolution;
+	end_cord_y = 2.85/map_resolution;
 	for(int y = start_cord_y;  y<= end_cord_y; y++){
 		for(int x = start_cord_x;  x <= end_cord_x; x++){
 			map.data[coordinateToIndex(y,x)] = 100;
@@ -147,9 +131,42 @@ void RSDMap::createMap(double map_sizex, double map_sizey, double mapres, double
 
 	//bottom right horizontal wall
 	start_cord_x = 8.1/map_resolution;
-	start_cord_y = 3.75/map_resolution;
-	end_cord_x = 8.2/map_resolution;
+	start_cord_y = 3.70/map_resolution;
+	end_cord_x = 8.25/map_resolution;
 	end_cord_y = 4.25/map_resolution;
+	for(int y = start_cord_y;  y<= end_cord_y; y++){
+		for(int x = start_cord_x;  x <= end_cord_x; x++){
+			map.data[coordinateToIndex(y,x)] = 100;
+		}
+	}
+
+	//Pillar #2
+	start_cord_x = 5.8/map_resolution;
+	start_cord_y = 1.45/map_resolution;
+	end_cord_x = 6.2/map_resolution;
+	end_cord_y = 1.85/map_resolution;
+	for(int y = start_cord_y;  y<= end_cord_y; y++){
+		for(int x = start_cord_x;  x <= end_cord_x; x++){
+			map.data[coordinateToIndex(y,x)] = 100;
+		}
+	}
+
+	//Pillar #3
+	start_cord_x = 5.8/map_resolution;
+	start_cord_y = 4.95/map_resolution;
+	end_cord_x = 6.2/map_resolution;
+	end_cord_y = 5.35/map_resolution;
+	for(int y = start_cord_y;  y<= end_cord_y; y++){
+		for(int x = start_cord_x;  x <= end_cord_x; x++){
+			map.data[coordinateToIndex(y,x)] = 100;
+		}
+	}
+
+	//Pillar #4
+	start_cord_x = 5.8/map_resolution;
+	start_cord_y = 8.45/map_resolution;
+	end_cord_x = 6.2/map_resolution;
+	end_cord_y = 8.8/map_resolution;
 	for(int y = start_cord_y;  y<= end_cord_y; y++){
 		for(int x = start_cord_x;  x <= end_cord_x; x++){
 			map.data[coordinateToIndex(y,x)] = 100;
@@ -177,14 +194,14 @@ void RSDMap::sendMapTransform() {
 
 void RSDMap::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 
-	//calc and publish delta
-
+	//calc and publish delta odometry data
+	//x and y are subtractions
 	delta_odom.pose.pose.position.x = (odom_msg->pose.pose.position.x - last_odom.pose.pose.position.x);
 	delta_odom.pose.pose.position.y = (odom_msg->pose.pose.position.y - last_odom.pose.pose.position.y);
 	//tf::quaternionMsgToTF(last_odom.pose.pose.orientation, q_last);
 	//tf::quaternionMsgToTF(odom_msg->pose.pose.orientation, q_new);
 
-
+	//do some stuff with quaternions
 	q_new.setW(odom_msg->pose.pose.orientation.w);
 	q_new.setZ(odom_msg->pose.pose.orientation.z);
 	q_new.setY(odom_msg->pose.pose.orientation.y);
@@ -192,6 +209,7 @@ void RSDMap::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 	//ROS_INFO("q_last: x: %f, y: %f, z: %f , w: %f",q_last.getX(),q_last.getY(),q_last.getZ(),q_last.getW());
 	//ROS_INFO("odomsg: x: %f, y: %f, z: %f , w: %f",odom_msg->pose.pose.orientation.x,odom_msg->pose.pose.orientation.y,odom_msg->pose.pose.orientation.z,odom_msg->pose.pose.orientation.w);
 
+	//difference between 2 quaternions is one inversed times the other.
 	q_delta = (q_last.inverse() * q_new);
 	delta_odom.pose.pose.orientation.w = q_delta.getW();
 	delta_odom.pose.pose.orientation.z = q_delta.getZ();
@@ -199,6 +217,7 @@ void RSDMap::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 	delta_odom.pose.pose.orientation.y = q_delta.getY();
 	//tf::quaternionTFToMsg(q_delta,delta_odom.pose.pose.orientation);
 
+	//publish the delta odometry (it is actually just used as a variable inside this class)
 	delta_position_pub.publish(delta_odom);
 	//store value for next callback
 	last_odom.pose.pose.position.x = odom_msg->pose.pose.position.x;
@@ -213,13 +232,6 @@ void RSDMap::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 void RSDMap::LaserScanCallback(sensor_msgs::LaserScan laser_scan){
 	sensor_msgs::PointCloud cloud;
 
-	/*
-	laser_scan.angle_increment = -laser_scan.angle_increment;
-	double temp = laser_scan.angle_max;
-	laser_scan.angle_max = laser_scan.angle_min;
-	laser_scan.angle_min = temp;
-	*/
-
 	try{
     	projector.projectLaser(laser_scan, cloud);
     }
@@ -232,26 +244,20 @@ void RSDMap::LaserScanCallback(sensor_msgs::LaserScan laser_scan){
     cloud.header.stamp = ros::Time::now();
     point_cloud_pub.publish(cloud);
 
-
-	//delta_position = calcPositionChange(position,last_position);
-
-	//last_position = position;
-
-
+    //Run an iteration of the particle filter (motion update, measurement update, resampling, pose estimation)
 	placeholder = particle_filter.update(cloud,delta_odom,map);
 
 	//ROS_INFO("Position in map: x: %.3f y: %.3f th: %.3f",vehicle_position.position.x ,vehicle_position.position.y,vehicle_position.position.th);
 	//ROS_INFO("Odom: x: %.3f y: %.3f th: %.3f",position.x ,position.y,position.th);
 
+	//update visualization markers for rviz
 	particle_filter.updateParticlesMarker();
-
 	visualization_msgs::MarkerArray markerArray = particle_filter.getParticlesMarker();
-
 	marker_pub.publish(markerArray);
 
 	publishMap();
-	//sendMapTransform(vehicle_position);
 	sendMapTransform();
 
-	//vehicle_position_pub.publish(vehicle_position);
+
+
 }

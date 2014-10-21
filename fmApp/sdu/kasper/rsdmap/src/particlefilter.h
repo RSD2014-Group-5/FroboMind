@@ -78,7 +78,7 @@ class ParticleFilter{
 		void resampling();
 		double gaussian(double mu, double sigma, double x);
 		void addRandomGaussianNoise();
-		//fmMsgs::vehicle_position findVehicle();
+
 		tf::Quaternion bt_q;
 		double yaw;
 

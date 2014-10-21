@@ -8,7 +8,7 @@
 #include "particlefilter.h"
 
 #define X_RANGE 3.00
-#define Y_RANGE 2.50
+#define Y_RANGE 3.00
 #define MIN_VALID_MEASUREMENTS 25
 #define MAX_DISTANCE 0.10
 #define MAX_ANGLE M_PI/12 // 15 degrees
@@ -107,6 +107,8 @@ void ParticleFilter::updateParticlesMarker(void)
 		particles_marker.markers.push_back(marker);
 	}
 
+
+	//Make a green arrow for the frobit pose (the chosen particle by the robust mean)
 	visualization_msgs::Marker marker;
 
 	geometry_msgs::Quaternion pose = tf::createQuaternionMsgFromYaw(last_pos.theta);
@@ -120,9 +122,9 @@ void ParticleFilter::updateParticlesMarker(void)
 	marker.pose.position.y = last_pos.y;
 	marker.pose.position.z = 0;
 	marker.pose.orientation = pose;
-	marker.scale.x = 0.2;
-	marker.scale.y = 0.02;
-	marker.scale.z = 0.05;
+	marker.scale.x = 0.25;
+	marker.scale.y = 0.05;
+	marker.scale.z = 0.08;
 	marker.color.a = 1.0;
 	marker.color.r = 0.0;
 	marker.color.g = 1.0;
@@ -142,20 +144,14 @@ void ParticleFilter::motionUpdate(const nav_msgs::Odometry& delta_position){
 	boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_x(rng, nd_x);
 	boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_y(rng, nd_y);
 	boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_theta(rng, nd_theta);
-	//tf::quaternionMsgToTF(delta_position.pose.pose.orientation,bt_q);
+
 	bt_q.setW(delta_position.pose.pose.orientation.w);
 	bt_q.setZ(delta_position.pose.pose.orientation.z);
 	bt_q.setY(delta_position.pose.pose.orientation.y);
 	bt_q.setX(delta_position.pose.pose.orientation.x);
 	yaw = tf::getYaw(bt_q);
 
-	/*
-	ROS_INFO("yaw: %f",yaw);
-	ROS_INFO("dx: %f",delta_position.pose.pose.position.x);
-	ROS_INFO("dy: %f",delta_position.pose.pose.position.y);
-	ROS_INFO("dth: %f",yaw);
-*/
-	//Remember x and y are flipped for now (can maybe get fixed later)
+	//Remember x and y are flipped for now because of the stupid map(can maybe get fixed later)
 	for (int i = 0; i < num_particles; i++){
 		//not swapped commented
 		//particles[i].y += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*sin(particles[i].theta) + var_y();
@@ -192,7 +188,7 @@ void ParticleFilter::measurementUpdate(const sensor_msgs::PointCloud& pointCloud
 			t.x = pointCloud.points[j].x * cos(particles[i].theta) - pointCloud.points[j].y * sin(particles[i].theta);
 			t.y = pointCloud.points[j].x * sin(particles[i].theta) + pointCloud.points[j].y * cos(particles[i].theta);
 
-			// Beregn fejl hvis målingen er gyldig
+			//Check with range restrictions and calculate error
 			if ((t.x < X_RANGE/2 && t.x > -X_RANGE/2) && (t.y < Y_RANGE/2 && t.y > -Y_RANGE/2)){
 				t.y += particles[i].y;
 				t.x += particles[i].x;
@@ -208,10 +204,11 @@ void ParticleFilter::measurementUpdate(const sensor_msgs::PointCloud& pointCloud
 				//else
 					temp_error = (100 - map.data[y*width+x]) * 0.001;
 
-				// bestemmer fejlen afhængig af om målingen ligger på den ene eller den anden række
+				//Product of guassians
 				prob *= gaussian(0,measurement_noise,temp_error);
 			}
 		}
+
 		if(valid_measurements > MIN_VALID_MEASUREMENTS)
 			particles[i].w = prob;
 		else
@@ -221,6 +218,7 @@ void ParticleFilter::measurementUpdate(const sensor_msgs::PointCloud& pointCloud
 
 }
 
+//Resampling wheel
 void ParticleFilter::resampling(){
 	srand(time(0));
 	std::vector<Frobit> temp_particles;

@@ -55,7 +55,6 @@ class RSDMap
 
 	public:
 
-		//RSDMap(double map_sizex, double map_sizey, double mapres, double startx, double starty);
 		RSDMap(int NumberOfParticles,double Len_x,double Len_y,double Max_ang, double Measurements_noise, double Movement_noise, double Turning_noise, double map_res);
 		ros::Publisher marker_pub;
 		ros::Publisher map_pub;
@@ -71,7 +70,6 @@ class RSDMap
 		void createMap(double map_sizex, double map_sizey, double mapres, double startx, double starty);
 		void publishMap();
 		void sendMapTransform();
-		void templateParticleMarkerUpdate();
 		void PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg);
 		void LaserScanCallback(sensor_msgs::LaserScan laser_scan);
 
