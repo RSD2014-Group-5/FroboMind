@@ -24,20 +24,26 @@ int main(int argc, char **argv){
   int numberOfParticles;
   double len_x;
   double len_y;
+  double off_x;
+  double off_y;
   double max_ang;
   double measurements_noise;
   double movement_noise;
   double turning_noise;
+  double min_valid_measurements;
 
   double map_resolution;
 
   nh.param<int>("particles", numberOfParticles, 100);
   nh.param<double>("length_x", len_x, 3.5);
   nh.param<double>("length_y", len_y, 0.5);
+  nh.param<double>("off_x", off_x, 5);
+  nh.param<double>("off_y", off_y, 5);
   nh.param<double>("max_ang", max_ang, 2*M_PI);
   nh.param<double>("measurement_noise", measurements_noise, 0.02);
   nh.param<double>("movement_noise", movement_noise, 0.03);
   nh.param<double>("turning_noise", turning_noise, M_PI/16);
+  nh.param<double>("min_valid_measurements", min_valid_measurements, 10);
 
   nh.param<double>("map_resolution",map_resolution,0.05);
 
@@ -51,7 +57,7 @@ int main(int argc, char **argv){
 
   //(int particles,double Len_x,double Len_y,double Max_ang, double Measurements_noise, double Movement_noise, double Turning_noise, double map_res);
   //RSDMap rm(100,3.5,0.5,2,0.02,0.05,0.05,0.05);
-  RSDMap rm(numberOfParticles,len_x,len_y,max_ang,measurements_noise,movement_noise,turning_noise,map_resolution);
+  RSDMap rm(numberOfParticles,len_x,len_y,off_x,off_y,max_ang,measurements_noise,movement_noise,turning_noise, min_valid_measurements,map_resolution);
   //RSDMap rm(100,3.5,3.5,2,0.03,0.01,0.02,0.05);
 
 
@@ -62,9 +68,9 @@ int main(int argc, char **argv){
   rm.laser_scan_sub = nh.subscribe<sensor_msgs::LaserScan> (lidar_sub_topic.c_str(), 2, &RSDMap::LaserScanCallback, &rm);
   rm.point_cloud_pub = n.advertise<sensor_msgs::PointCloud>(point_cloud_pub_topic.c_str(), 1);
 
-  rm.createMap(15.0,15.0,0.05,5.0,5.0);
+  rm.createMap(15.0,15.0,map_resolution,5.0,5.0);
   rm.publishMap();
-  ros::Rate loop_rate(10);
+  //ros::Rate loop_rate(10);
 
   ros::spin();
   return 0;

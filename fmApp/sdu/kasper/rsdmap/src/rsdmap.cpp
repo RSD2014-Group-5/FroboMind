@@ -10,7 +10,7 @@
 #include "rsdmap.h"
 
 
-RSDMap::RSDMap(int NumberOfParticles,double Len_x,double Len_y,double Max_ang, double Measurements_noise, double Movement_noise, double Turning_noise, double map_res){
+RSDMap::RSDMap(int NumberOfParticles,double Len_x,double Len_y, double offset_x, double offset_y, double Max_ang, double Measurements_noise, double Movement_noise, double Turning_noise, double min_laserpoints, double map_res){
 
 	numberOfParticles = NumberOfParticles;
 	len_x = Len_x;
@@ -19,13 +19,14 @@ RSDMap::RSDMap(int NumberOfParticles,double Len_x,double Len_y,double Max_ang, d
 	measurements_noise = Measurements_noise;
 	movement_noise = Movement_noise;
 	turning_noise = Turning_noise;
+	min_valid_measurements = min_laserpoints;
 
 	//off_x = 8;
 	//off_y = 3.2;
-	off_x = 5;
-	off_y = 5;
+	off_x = offset_x;
+	off_y = offset_y;
 
-	particle_filter = ParticleFilter(numberOfParticles,len_x,off_x,len_y,off_y,max_ang, measurements_noise, movement_noise, turning_noise);
+	particle_filter = ParticleFilter(numberOfParticles,len_x,off_x,len_y,off_y,max_ang, measurements_noise, movement_noise, turning_noise, min_valid_measurements);
 }
 
 void RSDMap::publishMap()

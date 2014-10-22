@@ -66,6 +66,8 @@ class ParticleFilter{
 
 		double max_prob;
 
+		double min_valid_measurements;
+
 		Frobit last_pos;
 		visualization_msgs::MarkerArray particles_marker;
 
@@ -85,7 +87,7 @@ class ParticleFilter{
 	public:
 
 		ParticleFilter();
-		ParticleFilter(int numberOfParticles,double len_x,double off_x,double len_y,double off_y,double max_ang, double measurements_noise, double movement_noise, double turning_noise);
+		ParticleFilter(int numberOfParticles,double len_x,double off_x,double len_y,double off_y,double max_ang, double measurements_noise, double movement_noise, double turning_noise, double min_laserpoints);
 		~ParticleFilter();
 
 		void updateParticlesMarker(void);

@@ -31,16 +31,10 @@
 class RSDMap
 {
 	private:
-	/*
-		double map_size_x;
-		double map_size_y;
-		double map_resolution;
-		double start_x;
-		double start_y;
-*/
+
 		ParticleFilter particle_filter;
 		int numberOfParticles;
-		double len_x,off_x,len_y,off_y,max_ang, measurements_noise, movement_noise, turning_noise;
+		double len_x,off_x,len_y,off_y,max_ang, measurements_noise, movement_noise, turning_noise, min_valid_measurements;
 		tf::TransformBroadcaster map_broadcaster;
 
 
@@ -55,7 +49,7 @@ class RSDMap
 
 	public:
 
-		RSDMap(int NumberOfParticles,double Len_x,double Len_y,double Max_ang, double Measurements_noise, double Movement_noise, double Turning_noise, double map_res);
+		RSDMap(int NumberOfParticles,double Len_x,double Len_y, double offset_x, double offset_y,double Max_ang, double Measurements_noise, double Movement_noise, double Turning_noise, double min_laserpoints, double map_res);
 		ros::Publisher marker_pub;
 		ros::Publisher map_pub;
 		ros::Subscriber odom_sub;

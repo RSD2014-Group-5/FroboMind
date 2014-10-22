@@ -7,17 +7,17 @@
 
 #include "particlefilter.h"
 
-#define X_RANGE 3.00
-#define Y_RANGE 3.00
-#define MIN_VALID_MEASUREMENTS 25
-#define MAX_DISTANCE 0.10
+#define X_RANGE 5.00
+#define Y_RANGE 5.00
+//#define MIN_VALID_MEASUREMENTS 25
+#define MAX_DISTANCE 0.15
 #define MAX_ANGLE M_PI/12 // 15 degrees
 
 ParticleFilter::ParticleFilter(){
 
 }
 
-ParticleFilter::ParticleFilter(int numberOfParticles,double len_x,double off_x,double len_y,double off_y,double max_ang, double measurements_noise, double movement_noise, double turning_noise){
+ParticleFilter::ParticleFilter(int numberOfParticles,double len_x,double off_x,double len_y,double off_y,double max_ang, double measurements_noise, double movement_noise, double turning_noise, double min_laserpoints){
 
 	num_particles = numberOfParticles;
 	length_y = len_x;
@@ -29,6 +29,7 @@ ParticleFilter::ParticleFilter(int numberOfParticles,double len_x,double off_x,d
 	measurement_noise = measurements_noise;
 	move_noise = movement_noise;
 	turn_noise = turning_noise;
+	min_valid_measurements = min_laserpoints;
 
 	print = 1;
 
@@ -130,6 +131,7 @@ void ParticleFilter::updateParticlesMarker(void)
 	marker.color.g = 1.0;
 	marker.color.b = 0.0;
 
+	ROS_INFO("Frobit pose: x: %f, y: %f, th: %f",last_pos.x,last_pos.y,last_pos.theta);
 	particles_marker.markers.push_back(marker);
 
 }
@@ -151,13 +153,13 @@ void ParticleFilter::motionUpdate(const nav_msgs::Odometry& delta_position){
 	bt_q.setX(delta_position.pose.pose.orientation.x);
 	yaw = tf::getYaw(bt_q);
 
-	//Remember x and y are flipped for now because of the stupid map(can maybe get fixed later)
+	//Disregard this comment "Remember x and y are flipped for now because of the stupid map(can maybe get fixed later)"
 	for (int i = 0; i < num_particles; i++){
-		//not swapped commented
+
 		//particles[i].y += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*sin(particles[i].theta) + var_y();
 		//particles[i].x += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*cos(particles[i].theta) + var_x();
-		particles[i].x += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*sin(particles[i].theta) + var_y();
-		particles[i].y += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*cos(particles[i].theta) + var_x();
+		particles[i].y += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*sin(particles[i].theta) + var_y();
+		particles[i].x += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*cos(particles[i].theta) + var_x();
 
 		particles[i].theta += yaw + var_theta();
 		if (particles[i].theta < 0)
@@ -198,18 +200,14 @@ void ParticleFilter::measurementUpdate(const sensor_msgs::PointCloud& pointCloud
 				int y = (int)((float)(t.y)/res);
 				int x = (int)((float)(t.x)/res);
 
-				// Beregner fejlen
-				//if (map.data[y*width+x] == 0)
-					//temp_error = 0.25;
-				//else
-					temp_error = (100 - map.data[y*width+x]) * 0.001;
+				temp_error = (100 - map.data[y*width+x]) * 0.001;
 
 				//Product of guassians
 				prob *= gaussian(0,measurement_noise,temp_error);
 			}
 		}
 
-		if(valid_measurements > MIN_VALID_MEASUREMENTS)
+		if(valid_measurements > min_valid_measurements)
 			particles[i].w = prob;
 		else
 			particles[i].w = 0;
@@ -290,11 +288,16 @@ Frobit ParticleFilter::findVehicle()
 			norm += particles[i].w;
 		}
 	}
-	last_pos.x = x / norm;
-	last_pos.y = y / norm;
-	last_pos.theta = theta / norm;
-	last_pos.w = max_prob;
-	//last_pos.header.stamp = ros::Time::now();
+	if(norm != 0)
+	{
+		last_pos.x = x / norm;
+		last_pos.y = y / norm;
+		last_pos.theta = theta / norm;
+		last_pos.w = max_prob;
+		//last_pos.header.stamp = ros::Time::now();
+	}
+
+
 
 	Frobit r;
 	r.y = x / norm;
