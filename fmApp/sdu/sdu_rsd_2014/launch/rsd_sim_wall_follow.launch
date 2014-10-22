@@ -10,7 +10,13 @@
  	<node pkg="stage_ros" type="stageros" name="simulator" args="$(find sdu_rsd_2014)/stage/frobitpro_robolab_rsd.world"/>
 	<remap from="/fmKnowledge/pose" to="/odom" />
 
-	<node pkg="sdu_rsd_findlines" type="sdu_rsd_findlines_node" name="find_lines" output="screen">
+	<node pkg="sdu_rsd_wallfollow" type="sdu_rsd_wallfollow_node" name="wall_follow" output="screen">
+		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
+		<param name="deadman_pub" value="/fmCommand/deadman" />
+
+		<param name="laserscan_sub" value="/base_scan" />
+		<param name="laserscan_frame" value="/base_laser_link" />
+
 		<param name="wall_distance" value="0.30" />
 
 		<param name="ransac_inliers" value="20" />
