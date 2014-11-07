@@ -61,13 +61,16 @@ class RSDMap
 		laser_geometry::LaserProjection projector;
 		nav_msgs::OccupancyGrid map;
 		int coordinateToIndex(int x, int y);
+		void createMapSim(double map_sizex, double map_sizey, double mapres, double startx, double starty);
 		void createMap(double map_sizex, double map_sizey, double mapres, double startx, double starty);
 		void publishMap();
 		void sendMapTransform();
+		void sendMapTransform(Frobit f);
 		void PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg);
 		void LaserScanCallback(sensor_msgs::LaserScan laser_scan);
 
 		nav_msgs::Odometry placeholder;
+		Frobit frobit_pos;
 
 };
 
