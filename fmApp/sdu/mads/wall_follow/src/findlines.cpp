@@ -1,8 +1,5 @@
 #include "findlines.h"
 
-#define LIDAR_OFFSETX 0.2
-#define LIDAR_OFFSETY 0.113
-
 int main (int argc, char** argv)
 {
     ros::init(argc, argv, "FindLines");
@@ -26,8 +23,8 @@ FindLines::FindLines()
     local_nh.param<std::string>("deadman_pub", parameters.deadman_pub, "/fmCommand/deadman");
     deadman_pub = n.advertise<std_msgs::Bool>(parameters.deadman_pub, 10);
 
-    local_nh.param<std::string>("laserscan_frame", parameters.laserscan_frame, "/base_laser_link");
-    local_nh.param<std::string>("laserscan_sub", parameters.laserscan_sub, "/cmd_vel");
+    local_nh.param<std::string>("laserscan_frame", parameters.laserscan_frame, "/laser");
+    local_nh.param<std::string>("laserscan_sub", parameters.laserscan_sub, "/LaserScanner/scan");
     laserScan = n.subscribe<sensor_msgs::LaserScan>(parameters.laserscan_sub, 10, &FindLines::laserScanCallback, this);
     tfListener_.setExtrapolationLimit(ros::Duration(0.1));
 
@@ -37,14 +34,18 @@ FindLines::FindLines()
 
     local_nh.param<double>("ransac_inliers", parameters.ransac_inliers, 20);
     local_nh.param<double>("ransac_threshold", parameters.ransac_threshold, 0.1);
+    local_nh.param<bool>("show_lines", parameters.show_lines, true);
 
     local_nh.param<double>("forward_velocity", parameters.forward_velocity, 0.0);
     local_nh.param<double>("turn_velocity", parameters.turn_velocity, 0.1);
     local_nh.param<double>("turn_factor", parameters.turn_factor, 1);
 
-    local_nh.param<int>("kp", parameters.kp, 100);
-    local_nh.param<int>("ki", parameters.ki, 1);
-    local_nh.param<int>("kd", parameters.kd, 1);
+    local_nh.param<double>("lidar_offset_x", parameters.lidar_offset_x, 0.21);
+    local_nh.param<double>("lidar_offset_y", parameters.lidar_offset_y, 0.1);
+
+    local_nh.param<double>("kp", parameters.kp, 100);
+    local_nh.param<double>("ki", parameters.ki, 1);
+    local_nh.param<double>("kd", parameters.kd, 1);
 
 
     //Enables debug logging
@@ -119,7 +120,7 @@ std::vector<LineStruct> FindLines::ransac(pcl::PointCloud<PointT>::Ptr laserRang
         points.action = line_strip.action = line_list.action = visualization_msgs::Marker::ADD;
         points.pose.orientation.w = line_strip.pose.orientation.w = line_list.pose.orientation.w = 1.0;
 
-        ros::Duration lifetime(.3);
+        ros::Duration lifetime(0.01);
         points.lifetime = line_strip.lifetime = line_list.lifetime = lifetime;
 
         marker_id++;
@@ -186,9 +187,9 @@ std::vector<LineStruct> FindLines::ransac(pcl::PointCloud<PointT>::Ptr laserRang
 
             //Adds the offset of the LIDAR. As we wants the distance from the robot and not from the LIDAR.
             if(b < 0)
-                distance = sqrt( pow(closest.x - LIDAR_OFFSETX - 0, 2) + pow(closest.y + LIDAR_OFFSETY - 0, 2) );
+                distance = sqrt( pow(closest.x + parameters.lidar_offset_x - 0, 2) + pow(closest.y + parameters.lidar_offset_y - 0, 2) );
             else
-                distance = sqrt( pow(closest.x - LIDAR_OFFSETX - 0, 2) + pow(closest.y - LIDAR_OFFSETY - 0, 2) );
+                distance = sqrt( pow(closest.x + parameters.lidar_offset_x - 0, 2) + pow(closest.y - parameters.lidar_offset_y - 0, 2) );
 
             if(distance < d_cur) d_cur = distance;
 
@@ -210,20 +211,22 @@ std::vector<LineStruct> FindLines::ransac(pcl::PointCloud<PointT>::Ptr laserRang
         vector_representation.push_back((double)last.x - (double)first.x);
         vector_representation.push_back((double)last.y - (double)first.y);
 
-        geometry_msgs::Point p_start;
-        p_start.y = a*first.x + b;
-        p_start.z = 0;
-        p_start.x = first.x;
-        line_list.points.push_back(p_start);
+        if(parameters.show_lines)
+        {
+            geometry_msgs::Point p_start;
+            p_start.y = a*first.x + b;
+            p_start.z = 0;
+            p_start.x = first.x;
+            line_list.points.push_back(p_start);
 
-        geometry_msgs::Point p_end;
-        p_end.y = a*last.x + b;
-        p_end.z = 0;
-        p_end.x = last.x;//;
-        line_list.points.push_back(p_end);
+            geometry_msgs::Point p_end;
+            p_end.y = a*last.x + b;
+            p_end.z = 0;
+            p_end.x = last.x;//;
+            line_list.points.push_back(p_end);
 
-        marker_pub.publish(line_list);
-
+            marker_pub.publish(line_list);
+        }
         //Extract the inliers
         extract.setInputCloud (cloud);
         extract.setIndices (inliers);
@@ -239,6 +242,9 @@ std::vector<LineStruct> FindLines::ransac(pcl::PointCloud<PointT>::Ptr laserRang
 
     //Sorts the vector of lines in distance, with lowest distance first.
     std::sort(lines.begin(), lines.end());
+
+    for(int i = 0; i < lines.size(); i++)
+        ROS_DEBUG("Distance %d - %f", i, lines.at(i).distance);
 
     return lines;
 
@@ -330,7 +336,7 @@ void FindLines::followWall(std::vector<LineStruct> lines, double desiredDistance
 
     /*Compute all the working error variables*/
     double error = desiredDistance - currentDistance;
-    //ROS_DEBUG("Desired: %f Current: %f Error: %f", desiredDistance, currentDistance, error);
+    ROS_DEBUG("Desired: %f Current: %f Error: %f", desiredDistance, currentDistance, error);
 
     errSum += (error * timeChange);
     double dErr = (error - lastErr) / timeChange;
@@ -351,6 +357,8 @@ void FindLines::followWall(std::vector<LineStruct> lines, double desiredDistance
         velocity = parameters.turn_velocity;
     else
         velocity = parameters.forward_velocity;
+
+    ROS_DEBUG("Vel: %f Output: %f", velocity, Output);
     //Checks if a wall in front of the robot is coming closer.
     /*if(lines.size() > 1)
     {
@@ -384,7 +392,6 @@ void FindLines::followWall(std::vector<LineStruct> lines, double desiredDistance
     cmd_velocity.twist.linear.x = velocity;
 
     velocity_pub.publish(cmd_velocity);
-
 }
 
 void FindLines::spinItDJ()
@@ -410,4 +417,6 @@ void FindLines::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& data)
     projector_.transformLaserScanToPointCloud(parameters.laserscan_frame, *data, pointCloud, tfListener_);
 
     pcl::fromROSMsg(pointCloud, laserScanCloud);
+
+    //ROS_DEBUG("Laser callback");
 }

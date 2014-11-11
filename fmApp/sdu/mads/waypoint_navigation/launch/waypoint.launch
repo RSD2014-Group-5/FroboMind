@@ -1,0 +1,27 @@
+<launch>
+ <!-- This assumes roscore is running on this machine -->
+	<node pkg="sdu_rsd_wallfollow" type="sdu_rsd_wallfollow_node" name="wall_follow" output="screen">
+		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
+		<param name="deadman_pub" value="/fmCommand/deadman" />
+
+		<param name="laserscan_sub" value="/LaserScanner/scan" />
+		<param name="laserscan_frame" value="/laser" />
+
+		<param name="lidar_offset_x" value="-0.1" />
+		<param name="lidar_offset_y" value="0.21" />		
+
+		<param name="wall_distance" value="0.15" />
+
+		<param name="ransac_inliers" value="20" />
+		<param name="ransac_threshold" value="0.05" />
+		<param name="show_lines" value="true" />
+
+		<param name="forward_velocity" value=".2" />
+		<param name="turn_velocity" value=".0" />
+		<param name="turn_factor" value=".15" /> <!-- How much to turn before slowing speed -->
+
+		<param name="kp" value="2.4" />
+		<param name="ki" value="0.0" />
+		<param name="kd" value="1.0" />
+	</node>
+</launch>

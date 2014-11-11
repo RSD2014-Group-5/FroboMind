@@ -1,5 +1,5 @@
-#ifndef RANSAC_H
-#define RANSAC_H
+#ifndef WAYPOINT_H
+#define WAYPOINT_H
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -7,6 +7,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
 
 #include <visualization_msgs/Marker.h>
@@ -51,14 +52,17 @@ struct LineStruct
 };
 
 
-class FindLines
+class WayPoint
 {
 public:
-    FindLines();
+    WayPoint();
     void spinItDJ();
     void laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& data);
-    std::vector<LineStruct> ransac(pcl::PointCloud<PointT>::Ptr laserRangePointCloud, int min_inliers, double threshold);
-    void followWall(std::vector<LineStruct> lines, double desiredDistance);
+    void waypointCallback(const geometry_msgs::Point::ConstPtr& data);
+    void visualizeWaypoint(geometry_msgs::Point waypoint);
+    void odometryCallback(const nav_msgs::Odometry::ConstPtr &data);
+    void gotoWaypoint();
+    bool obstacleDetection();
 
     //Publishers
     ros::Publisher marker_pub;
@@ -66,6 +70,8 @@ public:
     ros::Publisher deadman_pub;
 
     //Subscribers
+    ros::Subscriber waypoint_sub;
+    ros::Subscriber odometry_sub;
     ros::Subscriber laserScan;
 
     tf::TransformListener tfListener_;
@@ -73,33 +79,35 @@ public:
     pcl::PointCloud<PointT> laserScanCloud;
 
     //
-    bool leftWall;
+    std::vector<geometry_msgs::Point> waypoints;
+    geometry_msgs::PoseWithCovariance odometryPose;
 
     struct
     {
+        std::string waypoint_sub;
+        std::string odometry_sub;
         std::string cmd_vel_pub;
         std::string deadman_pub;
         std::string laserscan_sub;
         std::string laserscan_frame;
 
-        double wall_distance;
+        double kp_angle;
+        double ki_angle;
+        double kd_angle;
 
-        double ransac_threshold;
-        double ransac_inliers;
-        bool show_lines;
+        double kp_distance;
+        double ki_distance;
+        double kd_distance;
 
-        double lidar_offset_x;
-        double lidar_offset_y;
+        double kp_obstacle;
+        double kd_obstacle;
+        double speed_obstacle;
 
+        double max_turn_output;
+        double max_distance_obstacle;
+        double waypoint_reached_threshold;
 
-        double kp;
-        double ki;
-        double kd;
-
-        double forward_velocity;
-        double turn_velocity;
-        double turn_factor;
     } parameters;
 };
 
-#endif // RANSAC_H
+#endif // WAYPOINT_H
