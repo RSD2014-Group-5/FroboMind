@@ -8,9 +8,11 @@
 #include "particlefilter.h"
 
 #define X_RANGE 5.00
+#define X_RANGE_MIN 0.2
+#define Y_RANGE_MIN 0.2
 #define Y_RANGE 5.00
 //#define MIN_VALID_MEASUREMENTS 25
-#define MAX_DISTANCE 0.15
+#define MAX_DISTANCE 0.25
 #define MAX_ANGLE M_PI/12 // 15 degrees
 
 ParticleFilter::ParticleFilter(){
@@ -37,6 +39,8 @@ ParticleFilter::ParticleFilter(int numberOfParticles,double len_x,double off_x,d
 
 	yaw = 0;
 
+	printstuff = 0;
+
 	time_t sec;
 	time(&sec);
 	srand(uint(sec));
@@ -46,7 +50,9 @@ ParticleFilter::ParticleFilter(int numberOfParticles,double len_x,double off_x,d
 		srand(uint(x*1000.0+i*1000));
 		double y = (double)rand()/double(RAND_MAX) * length_y + offset_y - 0.5 * length_y;
 		srand(uint(y*1000.0+i*2000));
-		double theta = (double)rand()/double(RAND_MAX) * max_angle - 0.5 * max_angle;
+		//double theta = (double)rand()/double(RAND_MAX) * max_angle - 0.5 * max_angle;
+
+		double theta = 1.57;
 		if (theta < 0)
 			theta += 2*M_PI;
 		srand(uint(theta*1000.0+i*3000));
@@ -131,7 +137,15 @@ void ParticleFilter::updateParticlesMarker(void)
 	marker.color.g = 1.0;
 	marker.color.b = 0.0;
 
-	ROS_INFO("Frobit pose: x: %f, y: %f, th: %f",last_pos.x,last_pos.y,last_pos.theta);
+	if(printstuff < 10 ){
+		printstuff++;
+	}
+	else{
+		ROS_INFO("Frobit pose: x: %f, y: %f, th: %f",last_pos.x,last_pos.y,last_pos.theta);
+		printstuff = 0;
+	}
+
+
 	particles_marker.markers.push_back(marker);
 
 }
@@ -153,11 +167,8 @@ void ParticleFilter::motionUpdate(const nav_msgs::Odometry& delta_position){
 	bt_q.setX(delta_position.pose.pose.orientation.x);
 	yaw = tf::getYaw(bt_q);
 
-	//Disregard this comment "Remember x and y are flipped for now because of the stupid map(can maybe get fixed later)"
 	for (int i = 0; i < num_particles; i++){
 
-		//particles[i].y += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*sin(particles[i].theta) + var_y();
-		//particles[i].x += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*cos(particles[i].theta) + var_x();
 		particles[i].y += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*sin(particles[i].theta) + var_y();
 		particles[i].x += sqrt(pow(delta_position.pose.pose.position.x,2.0)+pow(delta_position.pose.pose.position.y,2.0))*cos(particles[i].theta) + var_x();
 
@@ -170,7 +181,7 @@ void ParticleFilter::motionUpdate(const nav_msgs::Odometry& delta_position){
 		//ROS_INFO("particle[%d]: x: %f, y: %f, th: %f",i,particles[i].x,particles[i].y,particles[i].theta);
 
 	}
-	//ROS_INFO("particle x: %f, y: %f, th: %f",particles[num_particles].x,particles[num_particles].y,particles[num_particles].theta);
+	//ROS_INFO("particle x: %f, y: %f, th: %f",particles[20].x,particles[20].y,particles[20].theta);
 }
 
 void ParticleFilter::measurementUpdate(const sensor_msgs::PointCloud& pointCloud, const nav_msgs::OccupancyGrid& map){
@@ -180,6 +191,7 @@ void ParticleFilter::measurementUpdate(const sensor_msgs::PointCloud& pointCloud
 	float res = map.info.resolution;
 	int width = map.info.width;
 	int height = map.info.height;
+	int maphits = 0;
 
 	for (int i = 0; i < num_particles; i++){
 		//Reset weight
@@ -190,27 +202,46 @@ void ParticleFilter::measurementUpdate(const sensor_msgs::PointCloud& pointCloud
 			t.x = pointCloud.points[j].x * cos(particles[i].theta) - pointCloud.points[j].y * sin(particles[i].theta);
 			t.y = pointCloud.points[j].x * sin(particles[i].theta) + pointCloud.points[j].y * cos(particles[i].theta);
 
-			//Check with range restrictions and calculate error
-			if ((t.x < X_RANGE/2 && t.x > -X_RANGE/2) && (t.y < Y_RANGE/2 && t.y > -Y_RANGE/2)){
+			//Check with range restrictions (max range) and calculate error
+			//if ((t.x < X_RANGE/2 && t.x > -X_RANGE/2) && (t.y < Y_RANGE/2 && t.y > -Y_RANGE/2)){
+			if ((t.x < X_RANGE/2) && (t.y < Y_RANGE/2)){
+			//Add a circular minimum range. Disregard points if they are within this circle
+			//if ((t.x < X_RANGE/2 && t.x > X_RANGE_MIN/2 && t.x < -X_RANGE_MIN/2 && t.x > -X_RANGE/2) && (t.y < Y_RANGE/2 && t.y > Y_RANGE_MIN/2 && t.y < -Y_RANGE_MIN/2 && t.y > -Y_RANGE/2)){
 				t.y += particles[i].y;
 				t.x += particles[i].x;
 
 				valid_measurements++;
 
+				//try to switch x and y
+				//int y = (int)((float)(t.y)/res);
+				//int x = (int)((float)(t.x)/res);
 				int y = (int)((float)(t.y)/res);
 				int x = (int)((float)(t.x)/res);
 
+				//temp_error = (100 - map.data[x*width+y]) * 0.001;
 				temp_error = (100 - map.data[y*width+x]) * 0.001;
+				if(temp_error != 0){
+					//ROS_INFO("(x,y):  (%d,%d)",x,y);
+					maphits++;
+				}
+
 
 				//Product of guassians
 				prob *= gaussian(0,measurement_noise,temp_error);
+				//ROS_INFO("within range");
 			}
 		}
 
+		particles[i].w = prob;
+		//ROS_INFO("Map hits: %d",maphits);
+		//ROS_INFO("p prob: %f",prob);
+/*
 		if(valid_measurements > min_valid_measurements)
 			particles[i].w = prob;
 		else
 			particles[i].w = 0;
+			*/
+
 
 	}
 
@@ -227,11 +258,13 @@ void ParticleFilter::resampling(){
 	max_prob = 0;
 	// Find the highest weight
 	for (int i = 0; i < num_particles; i++)
-		if (particles[i].w > max_prob)
+		if (particles[i].w > max_prob){
 			max_prob = particles[i].w;
+		}
 
+	ROS_INFO("Max prob: %f",max_prob);
 	double beta = 0;
-	// Perform the selection
+	//Perform the selection
 	for (int i = 0; i < num_particles; i++)
 	{
 		srand(uint(beta+i));
@@ -268,8 +301,8 @@ Frobit ParticleFilter::findVehicle()
 
 	for (int i = 0; i < num_particles; i++)
 	{
-		if (sqrt(pow(fb.x-particles[i].x,2.0) + pow(fb.y-particles[i].y,2.0)) < MAX_DISTANCE && (abs(fb.theta - particles[i].theta < MAX_ANGLE) || abs(fb.theta + 2*M_PI - particles[i].theta) < MAX_ANGLE || abs(fb.theta - 2*M_PI - particles[i].theta) < MAX_ANGLE))
-		{
+		//if (sqrt(pow(fb.x-particles[i].x,2.0) + pow(fb.y-particles[i].y,2.0)) < MAX_DISTANCE && (abs(fb.theta - particles[i].theta < MAX_ANGLE) || abs(fb.theta + 2*M_PI - particles[i].theta) < MAX_ANGLE || abs(fb.theta - 2*M_PI - particles[i].theta) < MAX_ANGLE))
+		//{
 			x += particles[i].x * particles[i].w;
 			y += particles[i].y * particles[i].w;
 
@@ -286,41 +319,43 @@ Frobit ParticleFilter::findVehicle()
 			theta += temp_theta * particles[i].w;
 
 			norm += particles[i].w;
-		}
+		//}
+
 	}
+	//ROS_INFO("Norm: %f", norm);
+	Frobit r;
 	if(norm != 0)
 	{
+//		ROS_INFO("norm != 0");
 		last_pos.x = x / norm;
 		last_pos.y = y / norm;
 		last_pos.theta = theta / norm;
 		last_pos.w = max_prob;
 		//last_pos.header.stamp = ros::Time::now();
+
+		r.y = x / norm;
+		r.x = y = y / norm;
+		r.theta = theta / norm;
+		r.theta = 2*M_PI - r.theta;
+		if (r.theta > 2*M_PI)
+			r.theta -= 2*M_PI;
+		else if (r.theta < 0)
+			r.theta += 2*M_PI;
+
+		r.w = max_prob;
+		//r.header.stamp = ros::Time::now();
 	}
-
-
-
-	Frobit r;
-	r.y = x / norm;
-	r.x = y = y / norm;
-	r.theta = theta / norm;
-	r.theta = 2*M_PI - r.theta;
-	if (r.theta > 2*M_PI)
-		r.theta -= 2*M_PI;
-	else if (r.theta < 0)
-		r.theta += 2*M_PI;
-
-	r.w = max_prob;
-	//r.header.stamp = ros::Time::now();
 
 	return r;
 
 }
 
-nav_msgs::Odometry ParticleFilter::update(const sensor_msgs::PointCloud& pointCloud, const nav_msgs::Odometry& delta_position, const nav_msgs::OccupancyGrid& map){
+//nav_msgs::Odometry ParticleFilter::update(const sensor_msgs::PointCloud& pointCloud, const nav_msgs::Odometry& delta_position, const nav_msgs::OccupancyGrid& map){
+Frobit ParticleFilter::update(const sensor_msgs::PointCloud& pointCloud, const nav_msgs::Odometry& delta_position, const nav_msgs::OccupancyGrid& map){
 	nav_msgs::Odometry placeh;
 	motionUpdate(delta_position);
 	measurementUpdate(pointCloud,map);
 	resampling();
-	findVehicle();
-	return placeh;
+	return findVehicle();
+	//return placeh;
 }

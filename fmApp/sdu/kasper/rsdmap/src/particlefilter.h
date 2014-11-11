@@ -68,6 +68,7 @@ class ParticleFilter{
 
 		double min_valid_measurements;
 
+		int printstuff;
 		Frobit last_pos;
 		visualization_msgs::MarkerArray particles_marker;
 
@@ -95,7 +96,8 @@ class ParticleFilter{
 		Frobit findVehicle();
 		visualization_msgs::MarkerArray getParticlesMarker(void);
 		void resetParticleFilter(double off_x, double off_y);
-		nav_msgs::Odometry update(const sensor_msgs::PointCloud& pointCloud, const nav_msgs::Odometry& delta_position, const nav_msgs::OccupancyGrid& map);
+		//nav_msgs::Odometry update(const sensor_msgs::PointCloud& pointCloud, const nav_msgs::Odometry& delta_position, const nav_msgs::OccupancyGrid& map);
+		Frobit update(const sensor_msgs::PointCloud& pointCloud, const nav_msgs::Odometry& delta_position, const nav_msgs::OccupancyGrid& map);
 };
 
 #endif /* SOURCE_DIRECTORY__FMAPP_SDU_KASPER_PARTICLE_FILTER_SRC_PARTICLEFILTER_H_ */

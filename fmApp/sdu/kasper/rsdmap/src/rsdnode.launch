@@ -4,7 +4,7 @@
 			<param name="lidar_sub_topic" value="/base_scan" />
 			<param name="visualization_marker_pub_topic" value="/fmExtractors/viz_marker_particle" />
 			<param name="point_cloud_pub_topic" value="/fmExtractors/point_cloud" />
-			<param name="odom_sub_tupic" value="/odom" />
+			<param name="odom_sub_topic" value="/odom" />
 			<param name="map_pub_topic" value="/fmExtractors/map" />
 			<param name="particles" value="100" />
 			<param name="length_x" value="0.5" />
