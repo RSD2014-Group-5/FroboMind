@@ -68,6 +68,7 @@ public:
     ros::Publisher marker_pub;
     ros::Publisher velocity_pub;
     ros::Publisher deadman_pub;
+    ros::Publisher waypointreached_pub;
 
     //Subscribers
     ros::Subscriber waypoint_sub;
@@ -86,6 +87,7 @@ public:
     {
         std::string waypoint_sub;
         std::string odometry_sub;
+        std::string waypointreached_pub;
         std::string cmd_vel_pub;
         std::string deadman_pub;
         std::string laserscan_sub;
@@ -106,6 +108,8 @@ public:
         double max_turn_output;
         double max_distance_obstacle;
         double waypoint_reached_threshold;
+        int min_closepoints;
+        double clearance_distance;
 
     } parameters;
 };
