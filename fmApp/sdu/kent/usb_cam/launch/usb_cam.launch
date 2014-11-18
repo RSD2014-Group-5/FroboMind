@@ -1,0 +1,11 @@
+<launch>
+	<node name="usbCameraDriver" pkg="usb_cam" type="usb_cam_node" output="screen">
+		<param name="video_device" value="/dev/video1" />
+		<param name="image_width" value="640" />
+		<param name="image_height" value="480" />
+		<param name="pixel_format" value="mjpeg" />
+		<param name="io_method" value="mmap" />
+		<param name="camera_frame_id" value="camera_head" />
+		<param name="framerate" value="60" />
+	</node>
+</launch>
