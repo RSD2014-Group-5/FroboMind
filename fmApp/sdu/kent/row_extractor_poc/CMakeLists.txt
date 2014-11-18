@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS dynamic_reconfigure laser_geometry msgs 
 # find_package(Boost REQUIRED COMPONENTS system)
 
 ##	Eigen
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 add_definitions(${EIGEN_DEFINITIONS})
 
