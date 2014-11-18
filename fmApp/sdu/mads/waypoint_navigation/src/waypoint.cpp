@@ -27,7 +27,7 @@ WayPoint::WayPoint()
     waypointreached_pub = n.advertise<std_msgs::Bool>(parameters.waypointreached_pub, 10);
 
     local_nh.param<std::string>("waypoint_sub", parameters.waypoint_sub, "/fmCommand/waypoint");
-    waypoint_sub = n.subscribe<geometry_msgs::Point>(parameters.waypoint_sub, 10, &WayPoint::waypointCallback, this);
+    waypoint_sub = n.subscribe<sdu_rsd_waypoint::Waypoint>(parameters.waypoint_sub, 10, &WayPoint::waypointCallback, this);
 
     local_nh.param<std::string>("odometry_sub", parameters.odometry_sub, "/odom");
     odometry_sub = n.subscribe<nav_msgs::Odometry>(parameters.odometry_sub, 10, &WayPoint::odometryCallback, this);
@@ -84,15 +84,17 @@ void WayPoint::odometryCallback(const nav_msgs::Odometry::ConstPtr &data)
     pose_received = true;
 }
 
-void WayPoint::waypointCallback(const geometry_msgs::Point::ConstPtr &data)
+void WayPoint::waypointCallback(const sdu_rsd_waypoint::Waypoint::ConstPtr &data)
 {
-    geometry_msgs::Point waypoint;
-    waypoint.x = data->x;
-    waypoint.y = data->y;
-    waypoint.z = data->z;
+    sdu_rsd_waypoint::Waypoint waypoint;
+    waypoint.header = data->header;
+    waypoint.X = data->X;
+    waypoint.Y = data->Y;
+    waypoint.Theta = data->Theta;
+    waypoint.Obstacle_avoidance = data->Obstacle_avoidance;
 
     waypoints.push_back(waypoint);
-    ROS_DEBUG("Waypoint recieved: %f %f", waypoint.x, waypoint.y);
+    ROS_DEBUG("Waypoint recieved: %f %f", waypoint.X, waypoint.Y);
 }
 
 int closest_index = 0;
@@ -352,16 +354,16 @@ void WayPoint::gotoWaypoint()
         return;
 
     //Defines the local variables used for calculations in this function.
-    geometry_msgs::Point wayPoint = this->waypoints[0];
+    sdu_rsd_waypoint::Waypoint wayPoint = this->waypoints[0];
 
     double curX = odometryPose.pose.position.x;
     double curY = odometryPose.pose.position.y;
 
-    double wayPointX = wayPoint.x;
-    double wayPointY = wayPoint.y;
+    double wayPointX = wayPoint.X;
+    double wayPointY = wayPoint.Y;
 
     //Calculates the error in the distance
-    double currentDistance = sqrt(pow(odometryPose.pose.position.x - wayPoint.x,2) + pow(odometryPose.pose.position.y - wayPoint.y,2));
+    double currentDistance = sqrt(pow(odometryPose.pose.position.x - wayPoint.X,2) + pow(odometryPose.pose.position.y - wayPoint.Y,2));
     double errorDistance = currentDistance;
     double EdDistance = errorDistance - lastErrDistance;
     lastErrDistance = errorDistance;

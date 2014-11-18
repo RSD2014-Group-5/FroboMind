@@ -10,9 +10,20 @@ find_package(catkin REQUIRED COMPONENTS dynamic_reconfigure laser_geometry msgs 
 # find_package(Boost REQUIRED COMPONENTS system)
 
 ##	Eigen
+#<<<<<<< Updated upstream
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 add_definitions(${EIGEN_DEFINITIONS})
+#=======
+#find_package(Eigen REQUIRED)
+#include_directories(${EIGEN_INCLUDE_DIRS})
+#add_definitions(${EIGEN_DEFINITIONS})
+#SET( EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}" )
+#IF( NOT EIGEN3_INCLUDE_DIR )
+#    MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
+#ENDIF()
+#INCLUDE_DIRECTORIES ( "${EIGEN3_INCLUDE_DIR}" )
+#>>>>>>> Stashed changes
 
 ##	PCL
 #find_package(PCL 1.3 REQUIRED COMPONENTS common io)

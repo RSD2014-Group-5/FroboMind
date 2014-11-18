@@ -9,6 +9,7 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
+#include <sdu_rsd_waypoint/Waypoint.h>
 
 #include <visualization_msgs/Marker.h>
 #include <tf/transform_listener.h>
@@ -58,7 +59,7 @@ public:
     WayPoint();
     void spinItDJ();
     void laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& data);
-    void waypointCallback(const geometry_msgs::Point::ConstPtr& data);
+    void waypointCallback(const sdu_rsd_waypoint::Waypoint::ConstPtr& data);
     void visualizeWaypoint(geometry_msgs::Point waypoint);
     void odometryCallback(const nav_msgs::Odometry::ConstPtr &data);
     void gotoWaypoint();
@@ -80,7 +81,7 @@ public:
     pcl::PointCloud<PointT> laserScanCloud;
 
     //
-    std::vector<geometry_msgs::Point> waypoints;
+    std::vector<sdu_rsd_waypoint::Waypoint> waypoints;
     geometry_msgs::PoseWithCovariance odometryPose;
 
     struct
