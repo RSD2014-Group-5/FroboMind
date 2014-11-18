@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS laser_geometry roscpp sensor_msgs std_ms
 
 ## System dependencies are found with CMake's conventions
 #find_package(Boost REQUIRED COMPONENTS system)
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 add_definitions(${EIGEN_DEFINITIONS})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
