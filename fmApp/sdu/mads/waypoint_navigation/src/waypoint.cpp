@@ -55,9 +55,9 @@ WayPoint::WayPoint()
     local_nh.param<double>("max_turn_output", parameters.max_turn_output, 1);
     local_nh.param<double>("max_distance_obstacle", parameters.max_distance_obstacle, 1);
     local_nh.param<double>("waypoint_reached_threshold", parameters.waypoint_reached_threshold, 0.1);
+    local_nh.param<double>("waypoint_reached_threshold_angle", parameters.waypoint_reached_threshold_angle, 0.1);
     local_nh.param<int>("min_closepoints", parameters.min_closepoints, 5);
     local_nh.param<double>("clearance_distance", parameters.clearance_distance, 0.5);
-
 
 
     //Enables debug logging
@@ -72,14 +72,6 @@ bool pose_received = false;
 void WayPoint::odometryCallback(const nav_msgs::Odometry::ConstPtr &data)
 {
     //Only for testing when using kaspers node to publish waypoints
-    if(pose_received == false)
-    {
-        //Inform the other nodes that the waypoint have been reached.
-        std_msgs::Bool waypoint = std_msgs::Bool();
-        waypoint.data = true;
-        waypointreached_pub.publish(waypoint);
-    }
-
     this->odometryPose = data->pose;
     pose_received = true;
 }
@@ -144,11 +136,6 @@ bool obstacle_lasttry = false;
 bool WayPoint::obstacleDetection()
 {
     double max_turn = 0.3;
-
-    //Publish deadman status depending on the distance to the obstacle.
-    std_msgs::Bool deadman = std_msgs::Bool();
-    deadman.data = true;
-    deadman_pub.publish(deadman);
 
     double errorObstacleAngle = 1;
     int angle;
@@ -218,14 +205,7 @@ bool WayPoint::obstacleDetection()
                 outputObstacleAngle = -max_turn;
 
             //Send out velocity commands that avoid  the obstacle.
-            geometry_msgs::TwistStamped cmd_velocity;
-            cmd_velocity.header.stamp = ros::Time::now();
-            cmd_velocity.twist.angular.z = outputObstacleAngle; //angle; // * -1; //Negative = turning right, Positive = turning left
-            cmd_velocity.twist.linear.x = 0; //parameters.speed_obstacle; //1 - outputObstacleAngle;
-
-            velocity_pub.publish(cmd_velocity);
-            //Add a safety that stops if something comes way too close!
-            //deadman.data = false;
+            moveRobot(0, outputObstacleAngle);
         }
     }
     else if(!move_forward)
@@ -246,7 +226,6 @@ bool WayPoint::obstacleDetection()
             //This and the last movement did not detect any obstacles! Move forward!
             lastErrObstacleAngle = 0;
             lastErrObstacleDistance = 0;
-            deadman.data = true;
 
             return false;
         }
@@ -262,12 +241,7 @@ bool WayPoint::obstacleDetection()
         double distance = sqrt(pow(x_cur - x_start, 2) + pow(y_cur - y_start, 2));
 
         //Send out velocity commands that avoid  the obstacle.
-        geometry_msgs::TwistStamped cmd_velocity;
-        cmd_velocity.header.stamp = ros::Time::now();
-        cmd_velocity.twist.angular.z = 0; //angle; // * -1; //Negative = turning right, Positive = turning left
-        cmd_velocity.twist.linear.x = parameters.speed_obstacle; //1 - outputObstacleAngle;
-
-        velocity_pub.publish(cmd_velocity);
+        moveRobot(parameters.speed_obstacle, 0);
 
         if(distance > parameters.clearance_distance)
             move_forward = false;
@@ -312,24 +286,38 @@ void WayPoint::visualizeWaypoint(geometry_msgs::Point waypoint)
 
 void WayPoint::spinItDJ()
 {
+    /*sdu_rsd_waypoint::Waypoint waypoint;
+    waypoint.Y = this->odometryPose.pose.position.y - 1.5;
+    waypoint.X = this->odometryPose.pose.position.x + 1.0299;
+    waypoint.Theta = 10;
+    this->waypoints.push_back(waypoint);*/
+
+    bool oneTimer = false;
+
     ros::Rate r(30);
     while (ros::ok())
     {
         //Only for testing with static waypoints
-        /*if(pose_received == true && this->waypoints.size() == 0)
+        if(pose_received == true && this->waypoints.size() == 0/* && oneTimer == false*/)
         {
             //Adds test waypoints.
-            geometry_msgs::Point waypoint;
-            waypoint.y = this->odometryPose.pose.position.y - 1.5;
-            waypoint.x = this->odometryPose.pose.position.x + 1.0299;
-            waypoint.z = 0;
+            sdu_rsd_waypoint::Waypoint waypoint;
+            waypoint.Y = this->odometryPose.pose.position.y - .1;
+            waypoint.X = this->odometryPose.pose.position.x + 5.299;
+            waypoint.Theta = 10;
+            waypoint.Obstacle_avoidance = true;
+
             this->waypoints.push_back(waypoint);
 
-            waypoint.y = this->odometryPose.pose.position.y;
-            waypoint.x = this->odometryPose.pose.position.x;
-            waypoint.z = 0;
+            waypoint.Y = this->odometryPose.pose.position.y;
+            waypoint.X = this->odometryPose.pose.position.x;
+            waypoint.Theta = 10;
+            waypoint.Obstacle_avoidance = true;
+
             this->waypoints.push_back(waypoint);
-        }*/
+
+            oneTimer = true;
+        }
 
         //this->visualizeWaypoint(waypoint);
         this->gotoWaypoint();
@@ -337,6 +325,42 @@ void WayPoint::spinItDJ()
         ros::spinOnce();
         r.sleep();
      }
+}
+
+double WayPoint::getRobotAngle()
+{
+    //Extract the yaw from the quaternion from the odometry.
+    double currentAngle = ((tf::getYaw(odometryPose.pose.orientation) * 180) / M_PI) + 0.0001; // Adds a very small value in the angle in order to handle the rare case of a robot angle of 0degrees
+
+    //Calculates the real angle on the robot, as the one determined from the laserscan gives from 0 to 180 and 0 to -180
+    double robotRealAngle;
+    if(currentAngle < 0)
+        robotRealAngle = 180 + (180 - fabs(currentAngle));
+    else
+        robotRealAngle = currentAngle;
+
+    return robotRealAngle;
+}
+
+double WayPoint::getAngleToWaypoint(sdu_rsd_waypoint::Waypoint waypoint)
+{
+    //Calculates the angle to the point from the robot.
+    //http://robotics.stackexchange.com/questions/550/how-to-determine-heading-without-compass
+    double curX = odometryPose.pose.position.x;
+    double curY = odometryPose.pose.position.y;
+
+    double a = waypoint.X - curX;
+    double b = waypoint.Y - curY;
+    double angleToWaypoint = atan2 (b,a) * 180 / M_PI;
+
+    //Same goes for the waypoint angle
+    double waypointRealAngle;
+    if(angleToWaypoint < 0)
+        waypointRealAngle = 180 + (180 - fabs(angleToWaypoint));
+    else
+        waypointRealAngle = angleToWaypoint;
+
+    return waypointRealAngle;
 }
 
 unsigned long lastTime = 0;
@@ -347,20 +371,20 @@ double lastErrDistance = 0;
 
 void WayPoint::gotoWaypoint()
 {
-    double max_forwardspeed = 1;
+    double max_forwardspeed = 0.5;
+    bool inGoal = false;
 
     /*Compute all the working error variables*/
     if(this->waypoints.size() <= 0 || pose_received == false)
         return;
 
+    //Publish deadman
+    std_msgs::Bool deadman = std_msgs::Bool();
+    deadman.data = true;
+    deadman_pub.publish(deadman);
+
     //Defines the local variables used for calculations in this function.
     sdu_rsd_waypoint::Waypoint wayPoint = this->waypoints[0];
-
-    double curX = odometryPose.pose.position.x;
-    double curY = odometryPose.pose.position.y;
-
-    double wayPointX = wayPoint.X;
-    double wayPointY = wayPoint.Y;
 
     //Calculates the error in the distance
     double currentDistance = sqrt(pow(odometryPose.pose.position.x - wayPoint.X,2) + pow(odometryPose.pose.position.y - wayPoint.Y,2));
@@ -370,38 +394,32 @@ void WayPoint::gotoWaypoint()
 
     double outputDistance = (parameters.kp_distance * errorDistance) + (parameters.kd_distance * EdDistance);
 
-    //Extract the yaw from the quaternion from the odometry.
-    double currentAngle = ((tf::getYaw(odometryPose.pose.orientation) * 180) / M_PI) + 0.0001; // Adds a very small value in the angle in order to handle the rare case of a robot angle of 0degrees
+    double waypointRealAngle = getAngleToWaypoint(wayPoint);
+    double robotRealAngle = getRobotAngle();
 
-    //Calculates the angle to the point from the robot.
-    //http://robotics.stackexchange.com/questions/550/how-to-determine-heading-without-compass
-    double a = wayPointX - curX;
-    double b = wayPointY - curY;
-    double angleToWaypoint = atan2 (b,a) * 180 / M_PI;
-
-    //Calculates the real angle on the robot, as the one determined from the laserscan gives from 0 to 180 and 0 to -180
-    double robotRealAngle;
-    if(currentAngle < 0)
-        robotRealAngle = 180 + (180 - fabs(currentAngle));
-    else
-        robotRealAngle = currentAngle;
-    //Same goes for the waypoint angle
-    double waypointRealAngle;
-    if(angleToWaypoint < 0)
-        waypointRealAngle = 180 + (180 - fabs(angleToWaypoint));
-    else
-        waypointRealAngle = angleToWaypoint;
+    //Cheats a bit, so if we are in the goal position but the robot does not have the right theta, then say to angletowaypoint is equal to theta
+    if(parameters.waypoint_reached_threshold > errorDistance)
+    {
+        //ROS_DEBUG("IN GOAL - TURN TO OBTAIN CORRECT THETA: %f %f", wayPoint.Theta, robotRealAngle);
+        waypointRealAngle = wayPoint.Theta;
+        inGoal = true;
+        //lastErrAngle = errorAngle; //Disables the D part
+    }
 
     //Calculates the error in the angle to the waypoint and in the robots angle.
     double errorAngle = waypointRealAngle - robotRealAngle;
 
     //Uses PD controller to correct the error in the angle.
     double EdAngle = errorAngle - lastErrAngle;
+    if(inGoal) //Dont use the previous angle when in goal
+        EdAngle = 0;
+
     double outputAngle = (parameters.kp_angle * errorAngle) + (parameters.kd_angle * EdAngle);
     lastErrAngle = errorAngle;
 
-    if(obstacleDetection()) //If an obstacle is too close, then return;
-        return;
+    if(wayPoint.Obstacle_avoidance && !inGoal)
+        if(obstacleDetection()) //If an obstacle is too close, then return;
+            return;
 
     //If the angle output are high, it might be necessary to turn on the spot, as turning slowly might increase the probability of hitting and obstacle in a crowded environment.
     if(fabs(errorAngle) > parameters.max_turn_output)
@@ -442,7 +460,7 @@ void WayPoint::gotoWaypoint()
                 outputAngle = -0.5;
         }
 
-        ROS_DEBUG("Angle to waypoint: %f Current Angle: %f Error: %f To turn: %f TurnRight: %f TurnLeft: %f", waypointRealAngle, robotRealAngle, errorAngle, outputAngle, turnRight, turnLeft);
+        //ROS_DEBUG("Angle to waypoint: %f Current Angle: %f Error: %f To turn: %f TurnRight: %f TurnLeft: %f", waypointRealAngle, robotRealAngle, errorAngle, outputAngle, turnRight, turnLeft);
         outputDistance = 0; //Dont drive forward when turning.
     }
 
@@ -455,26 +473,36 @@ void WayPoint::gotoWaypoint()
     //Check if the waypoint is reached.
     if(parameters.waypoint_reached_threshold > errorDistance)
     {
-        ROS_DEBUG("Waypoint reached at %f, %f Robot(%f, %f)", wayPointX, wayPointY, curX, curY);
+        //Checks if the angle on the waypoint is OK. If then, then tell the other nodes we have arrived at the waypoint.
+        //ROS_DEBUG("Error angle: %f", (robotRealAngle - waypointRealAngle));
+        if(fabs(robotRealAngle - waypointRealAngle) < parameters.waypoint_reached_threshold_angle)
+        {
+            ROS_DEBUG("Waypoint reached at %f, %f, %f Robot(%f, %f, %f)", wayPoint.X, wayPoint.Y, wayPoint.Theta, odometryPose.pose.position.x, odometryPose.pose.position.y, getRobotAngle());
 
-        //Inform the other nodes that the waypoint have been reached.
-        std_msgs::Bool waypoint = std_msgs::Bool();
-        waypoint.data = true;
-        waypointreached_pub.publish(waypoint);
+            //Inform the other nodes that the waypoint have been reached.
+            std_msgs::Bool waypoint = std_msgs::Bool();
+            waypoint.data = true;
+            waypointreached_pub.publish(waypoint);
 
-        //Removes the waypoint.
-        this->waypoints.erase(waypoints.begin());
-        return;
+            //Removes the waypoint.
+            this->waypoints.erase(waypoints.begin());
+            return;
+        }
     }
 
-    //ROS_DEBUG("Distance from goal: %f", errorDistance);
+    //ROS_DEBUG("Current X: %f, Curent Y: %f (%f, %f)", odometryPose.pose.position.x, odometryPose.pose.position.y, wayPoint.X, wayPoint.Y);
 
     //Publish motor control message that moves the robot towards the waypoint
     //ROS_DEBUG("Motor commands!! Turn: %f  Forward: %f", outputAngle, outputDistance);
+    moveRobot(outputDistance, outputAngle);
+}
+
+void WayPoint::moveRobot(double forward, double turn)
+{
     geometry_msgs::TwistStamped cmd_velocity;
     cmd_velocity.header.stamp = ros::Time::now();
-    cmd_velocity.twist.angular.z = outputAngle; //angle; // * -1; //Negative = turning right, Positive = turning left
-    cmd_velocity.twist.linear.x = outputDistance;
+    cmd_velocity.twist.angular.z = turn; //angle; // * -1; //Negative = turning right, Positive = turning left
+    cmd_velocity.twist.linear.x = forward;
 
     velocity_pub.publish(cmd_velocity);
 }

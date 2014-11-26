@@ -64,6 +64,9 @@ public:
     void odometryCallback(const nav_msgs::Odometry::ConstPtr &data);
     void gotoWaypoint();
     bool obstacleDetection();
+    double getRobotAngle();
+    double getAngleToWaypoint(sdu_rsd_waypoint::Waypoint waypoint);
+    void moveRobot(double forward, double turn);
 
     //Publishers
     ros::Publisher marker_pub;
@@ -109,6 +112,7 @@ public:
         double max_turn_output;
         double max_distance_obstacle;
         double waypoint_reached_threshold;
+        double waypoint_reached_threshold_angle;
         int min_closepoints;
         double clearance_distance;
 

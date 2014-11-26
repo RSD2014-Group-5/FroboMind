@@ -20,6 +20,9 @@
 
 		<param name="max_turn_output" value="2" /> <!-- If the output from the turn PID is bigger than this, then it should turn on the spot -->
 		<param name="waypoint_reached_threshold" value="0.01" /> <!-- Threshold of when the waypoint is reached. -->
+		<param name="waypoint_reached_threshold_angle" value="0.5" /> <!-- Threshold of when the waypoint is reached (Angle). -->
+
+
 		<param name="max_distance_obstacle" value="0.4" />
 		<param name="speed_obstacle" value="0.1" />
 		<param name="min_closepoints" value="5" />
