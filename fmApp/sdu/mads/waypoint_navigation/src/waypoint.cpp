@@ -301,7 +301,7 @@ void WayPoint::spinItDJ()
         if(pose_received == true && this->waypoints.size() == 0/* && oneTimer == false*/)
         {
             //Adds test waypoints.
-            sdu_rsd_waypoint::Waypoint waypoint;
+            /*sdu_rsd_waypoint::Waypoint waypoint;
             waypoint.Y = this->odometryPose.pose.position.y - .1;
             waypoint.X = this->odometryPose.pose.position.x + 5.299;
             waypoint.Theta = 10;
@@ -316,7 +316,7 @@ void WayPoint::spinItDJ()
 
             this->waypoints.push_back(waypoint);
 
-            oneTimer = true;
+            oneTimer = true;*/
         }
 
         //this->visualizeWaypoint(waypoint);
