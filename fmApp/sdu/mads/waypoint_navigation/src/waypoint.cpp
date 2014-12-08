@@ -473,9 +473,10 @@ void WayPoint::gotoWaypoint()
     //Check if the waypoint is reached.
     if(parameters.waypoint_reached_threshold > errorDistance)
     {
-        //Checks if the angle on the waypoint is OK. If then, then tell the other nodes we have arrived at the waypoint.
         //ROS_DEBUG("Error angle: %f", (robotRealAngle - waypointRealAngle));
-        if(fabs(robotRealAngle - waypointRealAngle) < parameters.waypoint_reached_threshold_angle)
+        //Checks if the angle on the waypoint is OK. If then, then tell the other nodes we have arrived at the waypoint.
+        //If the angle defined by the usercall is not between 0 and 360 then the waypoint is reached without having an final turn
+        if(fabs(robotRealAngle - waypointRealAngle) < parameters.waypoint_reached_threshold_angle || wayPoint.Theta < 0 || wayPoint.Theta > 360)
         {
             ROS_DEBUG("Waypoint reached at %f, %f, %f Robot(%f, %f, %f)", wayPoint.X, wayPoint.Y, wayPoint.Theta, odometryPose.pose.position.x, odometryPose.pose.position.y, getRobotAngle());
 

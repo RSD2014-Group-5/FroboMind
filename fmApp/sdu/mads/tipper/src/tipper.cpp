@@ -28,7 +28,7 @@ Tipper::Tipper()
     tipperStart_sub = n.subscribe<std_msgs::Bool>(parameters.tipper_start_sub, 5, &Tipper::tipStart, this);
 
     //Global variables
-    tip_command = true; //Only for test, to be removed!
+    tip_command = false;
     moving_up = false;
     moving_down = false;
 
