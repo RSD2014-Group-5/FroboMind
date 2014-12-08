@@ -1,0 +1,12 @@
+<launch>
+
+	<group ns="fmLib">
+		<node pkg="socket_pose" type="tcp_client.py" name="marker_locator_tcp_client">
+			<param name="order" value="9" />
+			<param name="odom_pub" value="/fmInformation/marker_locator_pose" />
+		</node>
+
+	</group>
+
+
+</launch>

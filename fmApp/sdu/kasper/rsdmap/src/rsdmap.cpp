@@ -1,12 +1,3 @@
-/*
- * rsdmap.cpp
- *
- *  Created on: Oct 16, 2014
- *      Author: kasper
- */
-
-
-
 #include "rsdmap.h"
 
 #define MIN_RANGE 0.01
