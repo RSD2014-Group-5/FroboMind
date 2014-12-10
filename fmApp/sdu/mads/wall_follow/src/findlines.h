@@ -57,6 +57,7 @@ public:
     FindLines();
     void spinItDJ();
     void laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& data);
+    void activeCallback(const std_msgs::Bool::ConstPtr& data);
     std::vector<LineStruct> ransac(pcl::PointCloud<PointT>::Ptr laserRangePointCloud, int min_inliers, double threshold);
     void followWall(std::vector<LineStruct> lines, double desiredDistance);
 
@@ -67,6 +68,7 @@ public:
 
     //Subscribers
     ros::Subscriber laserScan;
+    ros::Subscriber active_sub;
 
     tf::TransformListener tfListener_;
     laser_geometry::LaserProjection projector_;
@@ -79,8 +81,11 @@ public:
     {
         std::string cmd_vel_pub;
         std::string deadman_pub;
+        std::string active_sub;
         std::string laserscan_sub;
         std::string laserscan_frame;
+
+        bool active;
 
         double wall_distance;
 

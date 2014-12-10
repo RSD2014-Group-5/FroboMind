@@ -32,6 +32,11 @@ Tipper::Tipper()
     moving_up = false;
     moving_down = false;
 
+    end_button = false;
+    top_button = false;
+
+    tipper_initialized = false;
+
     //Move down the tipper to initial state in the bottom.
     tipInit();
 

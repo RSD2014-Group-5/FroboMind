@@ -23,13 +23,17 @@ FindLines::FindLines()
     local_nh.param<std::string>("deadman_pub", parameters.deadman_pub, "/fmCommand/deadman");
     deadman_pub = n.advertise<std_msgs::Bool>(parameters.deadman_pub, 10);
 
+    local_nh.param<std::string>("active_sub", parameters.active_sub, "/fmCommand/wallfollow");
+    active_sub = n.subscribe<std_msgs::Bool>(parameters.active_sub, 10, &FindLines::activeCallback, this);
+    parameters.active = false;
+
     local_nh.param<std::string>("laserscan_frame", parameters.laserscan_frame, "/laser");
     local_nh.param<std::string>("laserscan_sub", parameters.laserscan_sub, "/LaserScanner/scan");
     laserScan = n.subscribe<sensor_msgs::LaserScan>(parameters.laserscan_sub, 10, &FindLines::laserScanCallback, this);
     tfListener_.setExtrapolationLimit(ros::Duration(0.1));
 
 
-    /* Loads parameters from launch file */
+    // Loads parameters from launch file
     local_nh.param<double>("wall_distance", parameters.wall_distance, 0.3);
 
     local_nh.param<double>("ransac_inliers", parameters.ransac_inliers, 20);
@@ -53,7 +57,6 @@ FindLines::FindLines()
     {
       ros::console::notifyLoggerLevelsChanged();
     }
-
 }
 
 std::vector<LineStruct> FindLines::ransac(pcl::PointCloud<PointT>::Ptr laserRangePointCloud, int min_inliers, double threshold)
@@ -248,7 +251,6 @@ std::vector<LineStruct> FindLines::ransac(pcl::PointCloud<PointT>::Ptr laserRang
 
     return lines;
 
-
     /*visualization_msgs::Marker points, line_strip, line_list;
     points.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "/base_laser_link";
     points.header.stamp = line_strip.header.stamp = line_list.header.stamp = ros::Time::now();
@@ -375,7 +377,7 @@ void FindLines::followWall(std::vector<LineStruct> lines, double desiredDistance
     }*/
     //ROS_DEBUG("Error: %f D-Error: %f ErrorSum: %f Output: %f", error, dErr, errSum, Output);
 
-    /*Remember some variables for next time*/
+    //Remember some variables for next time
     lastErr = error;
     lastTime = now;
 
@@ -399,15 +401,24 @@ void FindLines::spinItDJ()
     ros::Rate r(30);
     while (ros::ok())
     {
-        std::vector<LineStruct> lines = ransac(laserScanCloud.makeShared(), parameters.ransac_inliers, parameters.ransac_threshold);
+        if(parameters.active) //Only go into the loop of the wall following is active
+        {
+            std::vector<LineStruct> lines = ransac(laserScanCloud.makeShared(), parameters.ransac_inliers, parameters.ransac_threshold);
 
-        //Call the line following algorithm if a line was represented.
-        if(lines.size() > 0)
-            followWall(lines, parameters.wall_distance);
+            //Call the line following algorithm if a line was represented.
+            if(lines.size() > 0)
+                followWall(lines, parameters.wall_distance);
+        }
 
         ros::spinOnce();
         r.sleep();
      }
+}
+
+void FindLines::activeCallback(const std_msgs::Bool::ConstPtr& data)
+{
+    parameters.active = data->data;
+    ROS_DEBUG("CALLBACK ACTIVE RECEIEVED! FOLLOWING LINES: %d", parameters.active);
 }
 
 void FindLines::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& data)

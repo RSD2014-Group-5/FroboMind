@@ -24,14 +24,14 @@ public:
     ros::Subscriber tipperMsg_sub;
     ros::Subscriber tipperStart_sub;
 
-    bool tip_command = false;
-    bool end_button = false;
-    bool top_button = false;
+    bool tip_command;
+    bool end_button;
+    bool top_button;
 
-    bool moving_up = false;
-    bool moving_down = false;
+    bool moving_up;
+    bool moving_down;
 
-    bool tipper_initialized = false;
+    bool tipper_initialized;
 
     void msgFromTipper(const msgs::nmea::ConstPtr &msg);
     void commandTip(bool up, bool down);
