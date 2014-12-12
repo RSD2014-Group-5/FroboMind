@@ -4,9 +4,10 @@
 	<group ns="fmProcessors">
 		<node pkg="odometry_gnss_pose_estimator" name="pose_estimator" type="pose_estimator_node.py" output="screen" >
 			<param name="frame_id" value="base_footprint" />
-			<param name="child_frame_id" value="/odom" />
-			<!--<param name="odom_sub" value="/fmKnowledge/pose" />-->
-			<param name="odom_sub" value="/fmInformation/marker_locator_pose" />
+			<param name="child_frame_id" value="odom" />
+			<param name="odom_sub" value="/fmKnowledge/pose" />
+			<!--<param name="odom_sub" value="/fmInformation/marker_locator_pose" />-->
+			<param name="marker_pose_sub" value="/fmInformation/marker_locator_pose" />
 			<param name="imu_sub" value="/fmInformation/imu" />
 			<param name="gga_sub" value="/fmInformation/gpgga_tranmerc" />
 			<param name="pose_pub" value="/fmKnowledge/pose_gnss" />
