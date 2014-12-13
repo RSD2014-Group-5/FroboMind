@@ -1,0 +1,18 @@
+<launch>
+
+    <node name="camera_head_link_to_map" pkg="tf"   type="static_transform_publisher" args="0 0 0  0 0 0  /map /camera_head_link 100" />
+    <node name="camera_link_to_map" pkg="tf"        type="static_transform_publisher" args="0 0 0  0 0 0  /map /camera_link 100" />
+
+	<node name="redlineFollower" pkg="redline_following" type="redline_following_node" output="screen">
+		<param name="loop_rate" value="10" />
+		<param name="camera_image_topic" value="/usbCameraDriver/image_raw" />
+		<param name="camera_image_link" value="camera_head_link" />
+		
+		<param name="red_weight"            value="2.0" />
+		<param name="green_weight"          value="1.0" />
+		<param name="blue_weight"           value="1.0" />
+		<param name="excess_red_treshold"   value="120.0" />
+		
+		<param name="ransac_distance"       value="15.0" />
+	</node>
+</launch>
