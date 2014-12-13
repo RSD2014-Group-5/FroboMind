@@ -11,13 +11,13 @@ int main (int argc, char** argv)
 {
 	ros::init(argc, argv, "RowExtractorNode");
 
-	RowExtractorNode rowNode;
+	RedlineExtractorNode rowNode;
 	rowNode.makeItSpin();
 
 	return 0;
 }
 
-RowExtractorNode::RowExtractorNode()
+RedlineExtractorNode::RedlineExtractorNode()
 {
 	//	ROS node handler stuff
 	this->nodeHandler = ros::NodeHandle("~");
@@ -50,15 +50,15 @@ RowExtractorNode::RowExtractorNode()
 	//	Setup system input
 	this->nodeHandler.param<std::string>("scanTopic", this->input.scanTopic, "/fmSensors/laser_msg");
 	this->nodeHandler.param<std::string>("scanLink", this->input.scanLink, "/laser_link");
-	this->input.scanSubscribe = this->nodeHandler.subscribe<sensor_msgs::LaserScan>(this->input.scanTopic, 10, &RowExtractorNode::laserScanCallback, this);
+	this->input.scanSubscribe = this->nodeHandler.subscribe<sensor_msgs::LaserScan>(this->input.scanTopic, 10, &RedlineExtractorNode::laserScanCallback, this);
 }
 
-RowExtractorNode::~RowExtractorNode()
+RedlineExtractorNode::~RedlineExtractorNode()
 {
 	// TODO Auto-generated destructor stub
 }
 
-void RowExtractorNode::makeItSpin()
+void RedlineExtractorNode::makeItSpin()
 {
 	ros::Rate r(this->loopRate);
 
@@ -86,7 +86,7 @@ void RowExtractorNode::makeItSpin()
 	}
 }
 
-void RowExtractorNode::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& data)
+void RedlineExtractorNode::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& data)
 {
 	//	Transform laser scan to point cloud in the scanners own frame
 	sensor_msgs::PointCloud2 pointCloud;
@@ -95,7 +95,7 @@ void RowExtractorNode::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr&
 	pcl::fromROSMsg(pointCloud, this->input.pointCloud);
 }
 
-void RowExtractorNode::preProcess (void)
+void RedlineExtractorNode::preProcess (void)
 {
 	//	Parameters
 	double minDist = .5; //	[m]
@@ -130,7 +130,7 @@ void RowExtractorNode::preProcess (void)
 	this->preProcessedCloud = pCloud; //this->input.pointCloud;
 }
 
-void RowExtractorNode::ransac (void)
+void RedlineExtractorNode::ransac (void)
 {
 	//	Seed randomizer
 	srand(time(0));

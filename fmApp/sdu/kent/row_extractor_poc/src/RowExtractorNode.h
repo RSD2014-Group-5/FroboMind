@@ -28,7 +28,7 @@
 
 typedef pcl::PointXYZI PointT;
 
-class RowExtractorNode
+class RedlineExtractorNode
 {
 	//	Node handler
 	ros::NodeHandle nodeHandler;
@@ -72,8 +72,8 @@ class RowExtractorNode
 	void ransac (void);
 
 public:
-	RowExtractorNode();
-	virtual ~RowExtractorNode();
+	RedlineExtractorNode();
+	virtual ~RedlineExtractorNode();
 
 	void makeItSpin (void);
 };

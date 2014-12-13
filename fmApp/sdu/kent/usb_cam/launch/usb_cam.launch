@@ -5,7 +5,7 @@
 		<param name="image_height" value="480" />
 		<param name="pixel_format" value="mjpeg" />
 		<param name="io_method" value="mmap" />
-		<param name="camera_frame_id" value="camera_head" />
+		<param name="camera_frame_id" value="camera_head_link" />
 		<param name="framerate" value="60" />
 	</node>
 </launch>
