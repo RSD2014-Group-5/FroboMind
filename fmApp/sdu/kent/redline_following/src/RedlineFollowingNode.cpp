@@ -130,5 +130,18 @@ void RedlineExtractorNode::processImage(void)
 
 void RedlineExtractorNode::ransac (void)
 {
+    std::vector<int> ransacIndices;
+    pcl::PointCloud<PointT> ransacPoints;
 
+    //  Setup ransac
+    pcl::SampleConsensusModelLine<PointT>::Ptr lineModel(new pcl::SampleConsensusModelLine<PointT> (this->poiCloud.makeShared()));
+    pcl::RandomSampleConsensus<PointT> ransac(lineModel);
+    
+    //  Extract line
+    ransac.setDistanceThreshold(this->params.ransacDistance);
+    ransac.computeModel();
+    ransac.getInliers(ransacIndices);  
+    
+    pcl::copyPointCloud<pcl::PointXYZ>(this->poiCloud, ransacIndices, ransacPoints);
+    pcl::toROSMsg(ransacPoints, this->output.poiCloudMsg);
 }

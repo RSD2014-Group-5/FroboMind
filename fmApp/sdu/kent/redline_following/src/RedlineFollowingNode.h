@@ -28,7 +28,7 @@
 #include <pcl/conversions.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_line.h>
-#include <pcl/filters/filter_indices.h>
+#include <pcl/filters/extract_indices.h>
 
 namespace imageEncoding = sensor_msgs::image_encodings;
 
