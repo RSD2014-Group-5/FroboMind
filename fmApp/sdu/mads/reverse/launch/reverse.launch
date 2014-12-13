@@ -1,0 +1,12 @@
+<launch>
+ <!-- This assumes roscore is running on this machine or the robot -->
+	<node pkg="sdu_rsd_reverse" type="sdu_rsd_reverse_node" name="reverse" output="screen">
+		<param name="reverse_sub" value="/reverse_distance" />
+		<param name="reverse_pub" value="/reverse_done" />
+		<param name="odometry_sub" value="/fmKnowledge/pose" />
+		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
+		<param name="deadman_pub" value="/fmCommand/deadman" />
+
+		<param name="speed" value="-0.1" />
+	</node>
+</launch>

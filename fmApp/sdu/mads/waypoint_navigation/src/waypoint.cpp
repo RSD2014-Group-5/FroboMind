@@ -289,10 +289,10 @@ void WayPoint::spinItDJ()
     /*sdu_rsd_waypoint::Waypoint waypoint;
     waypoint.Y = this->odometryPose.pose.position.y - 1.5;
     waypoint.X = this->odometryPose.pose.position.x + 1.0299;
-    waypoint.Theta = 10;
-    this->waypoints.push_back(waypoint);*/
+    waypoint.Theta = 361;
+    this->waypoints.push_back(waypoint);
 
-    bool oneTimer = false;
+    bool oneTimer = false;*/
 
     ros::Rate r(30);
     while (ros::ok())
@@ -484,6 +484,10 @@ void WayPoint::gotoWaypoint()
             std_msgs::Bool waypoint = std_msgs::Bool();
             waypoint.data = true;
             waypointreached_pub.publish(waypoint);
+
+            //Resets the PD values and counters.
+            lastErrAngle = 0;
+            lastErrDistance = 0;
 
             //Removes the waypoint.
             this->waypoints.erase(waypoints.begin());
