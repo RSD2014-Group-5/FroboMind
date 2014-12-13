@@ -3,6 +3,7 @@
 <node pkg="amcl" type="amcl" name="amcl" output="screen">
     <remap from="scan" to="/LaserScanner/scan"/>
     <param name="odom_frame_id" value="odom"/>
+    <param name="base_frame_id" value="base_footprint"/>
     <param name="odom_model_type" value="diff"/>
     <param name="laser_model_type" value="likelihood_field"/>
     <param name="use_map_topic" value="false"/>

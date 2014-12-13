@@ -11,13 +11,17 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/MapMetaData.h"
 #include "nav_msgs/Odometry.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/UInt32.h"
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 
 #include <tf/transform_broadcaster.h>
 #include <tf/LinearMath/Quaternion.h>
 #include <tf/transform_listener.h>
+#include <tf/tf.h>
+#include <tf/LinearMath/Transform.h>
 
 #include <tf/transform_datatypes.h>
 #include <sdu_rsd_waypoint/Waypoint.h>
@@ -27,12 +31,20 @@ class SLAMPose
 
 		nav_msgs::Odometry last_pos;
 		nav_msgs::Odometry slam_pose;
+		nav_msgs::Odometry robot_pose;
 		geometry_msgs::PoseStamped map_pose;
 		geometry_msgs::PoseStamped odom_pose;
+		geometry_msgs::PoseWithCovarianceStamped reinit_pose;
 		geometry_msgs::Point wp_point;
 		nav_msgs::Odometry next_wp;
 		sdu_rsd_waypoint::Waypoint wp_obs;
 
+		//0 = floor
+		//1 = dispenser
+
+		int nav_mode;
+		int angle_print_cnt;
+		bool reinit;
 		int waypoint_number;
 	public:
 
@@ -40,12 +52,17 @@ class SLAMPose
 
 		ros::Publisher pose_pub;
 		ros::Subscriber odom_sub;
+		ros::Subscriber odom_gnss_sub;
 		ros::Subscriber map_sub;
 		ros::Publisher pose_marker_pub;
 		ros::Subscriber laser_scan_sub;
 		ros::Subscriber wp_reached_sub;
 		ros::Publisher waypoint_pub;
 		ros::Subscriber clicked_point_sub;
+		ros::Publisher initialpose_pub;
+		ros::Subscriber reinit_amcl_sub;
+		ros::Subscriber gps_pose_sub;
+		ros::Subscriber nav_mode_sub;
 
 		tf::TransformListener tf_listener;
 		tf::StampedTransform transform;
@@ -58,6 +75,9 @@ class SLAMPose
 		void LaserScanCallback(sensor_msgs::LaserScan laser_scan);
 		void WaypointCallback(std_msgs::Bool wp_reached);
 		void ClickedPointCallback(geometry_msgs::PointStamped clicked_point);
+		void ReinitCallback(std_msgs::Bool reinit_amcl);
+		void GPSPoseCallback(const nav_msgs::OdometryConstPtr& gps_pose_msg);
+		void NavModeCallback(std_msgs::UInt32 nav_mode_msg);
 
 };
 

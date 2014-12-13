@@ -64,7 +64,7 @@ class TCPBridgeClient(asyncore.dispatcher):
 
               odom = nav_msgs.msg.Odometry()
 #              odom.header.stamp.secs = int(timestamp)
-              odom.header.frame_id = "odom"
+              odom.header.frame_id = "gps"
             
               odom.pose.pose.position.x = x/100;
               odom.pose.pose.position.y = y/100;
@@ -72,7 +72,7 @@ class TCPBridgeClient(asyncore.dispatcher):
 #              print type(odom_quat)
               odom.pose.pose.orientation = q;
              
-              odom.child_frame_id = "base_footprint";
+              odom.child_frame_id = "base_footprint_gps";
               odom.twist.twist.linear.x = 0;
               odom.twist.twist.linear.y = 0;
               odom.twist.twist.angular.z = 0;

@@ -108,6 +108,7 @@ class PoseEstimatorNode():
 		self.latest_odo_update = rospy.get_time()
 		x = msg.pose.pose.position.x
 		y = msg.pose.pose.position.y
+		rospy.loginfo(x)
 		self.quaternion[0] = msg.pose.pose.orientation.x
 		self.quaternion[1] = msg.pose.pose.orientation.y
 		self.quaternion[2] = msg.pose.pose.orientation.z
@@ -136,6 +137,7 @@ class PoseEstimatorNode():
 		self.odometry_y_prev = y
 		self.odometry_yaw_prev = yaw
 
+
 	def on_absolute_pose(self, msg):
 		self.latest_odo_update = rospy.get_time()
 		self.quaternion[0] = msg.pose.pose.orientation.x
@@ -156,7 +158,9 @@ class PoseEstimatorNode():
 			
 		self.pose = self.ekf.measurement_update ([msg.pose.pose.position.x, msg.pose.pose.position.y, yaw], pos_variance, yaw_variance)
 
-		# publish the estimated pose	
+		# publish the estimated pose
+
+		rospy.loginfo("x,y: %f,%f"msg.pose.pose.position.x,msg.pose.pose.position.y)
 		self.publish_pose()
 
 
