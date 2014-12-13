@@ -68,7 +68,7 @@ void RedlineExtractorNode::makeItSpin()
         {
       		//	Process data
     		this->processImage();
-    		this->extractLines();
+    		this->ransac();
         
             //  Update image window if any image has ben received
             cv::imshow("Camera image", this->input.cvImage->image);
@@ -123,44 +123,12 @@ void RedlineExtractorNode::processImage(void)
             }
 		}
 	}
-
-//    ROS_INFO("Number of points in cloud (%d) ...", (int)this->poiCloud.size());
     
     //  Convert data
     pcl::toROSMsg(this->poiCloud, this->output.poiCloudMsg);
 }
 
-void RedlineExtractorNode::extractLines(void)
+void RedlineExtractorNode::ransac (void)
 {
-    //  Temporary cloud
-    pcl::PointCloud<PointT> tempPoints;
 
-    //  Create vector for interesting point indices
-    std::vector<int> inLiersLineOne;
-    std::vector<int> inLiersLineTwo;
-    pcl::PointIndices::Ptr indices;
-
-    //  Clear point clouds containing lines
-    this->lineOnePoints.clear();
-    this->lineTwoPoints.clear();
-
-    //  Setup ransac (Line 1)   
-    pcl::SampleConsensusModelLine<PointT>::Ptr modelLineOne(new pcl::SampleConsensusModelLine<PointT> (this->poiCloud.makeShared()));
-    pcl::RandomSampleConsensus<PointT> ransacLineOne(modelLineOne);
-    
-    //  Find line 1
-    ransacLineOne.setDistanceThreshold(this->params.ransacDistance);
-    ransacLineOne.computeModel();
-    ransacLineOne.getInliers(inLiersLineOne);
-    
-    //  Filter outliers from poiCloud
-    ROS_INFO(" Size: %d", (int)this->poiCloud.size());
-    pcl::FilterIndices<PointT> indicesFilter;
-    indicesFilter.setInputCloud (this->poiCloud.makeShared());
-    indicesFilter.filter(inLiersLineOne);
-    ROS_INFO(" Size: %d", (int)this->poiCloud.size());
-    
-    
-//    pcl::copyPointCloud<pcl::PointXYZ>(this->poiCloud, inLiers, this->modelCloud);
-    pcl::toROSMsg(this->lineOnePoints, this->output.poiCloudMsg);
 }

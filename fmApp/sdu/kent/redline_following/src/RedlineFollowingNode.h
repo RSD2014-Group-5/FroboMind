@@ -74,18 +74,15 @@ class RedlineExtractorNode
     } params;
 
 	//	Processed data
-	pcl::PointCloud<PointT> modelCloud;
-	pcl::PointCloud<PointT> poiCloud;		//	Points of interest (Point Cloud)
-	pcl::PointCloud<PointT> lineOnePoints;
-	pcl::PointCloud<PointT> lineTwoPoints;
 	cv::Mat poiImage;                       //	Points of interest (Image for visualization purpose)
+	pcl::PointCloud<PointT> poiCloud;		//	Points of interest (Point Cloud)
 
 	//	Callback
 	void cameraImageCallback(const sensor_msgs::Image::ConstPtr& data);
 
 	//	Processors
 	void processImage (void);
-	void extractLines (void);
+	void ransac (void);
 
 public:
 	RedlineExtractorNode();
