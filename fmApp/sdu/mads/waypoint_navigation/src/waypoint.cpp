@@ -137,7 +137,7 @@ bool obstacle_lasttry = false;
 
 bool WayPoint::obstacleDetection()
 {
-    double max_turn = 0.3;
+    double max_turn = 0.1;
 
     double errorObstacleAngle = 1;
     int angle;
@@ -373,7 +373,7 @@ double lastErrDistance = 0;
 
 void WayPoint::gotoWaypoint()
 {
-    double max_forwardspeed = 0.5;
+    double max_forwardspeed = 0.3;
     bool inGoal = false;
 
     /*Compute all the working error variables*/

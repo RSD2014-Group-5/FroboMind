@@ -420,11 +420,11 @@ bool SLAMPose::withinArea(geometry_msgs::Point A, geometry_msgs::Point B, geomet
 */
 	if(0 <= dotP(AB,AR) && dotP(AB,AR) <= dotP(AB,AB) && 0 <= dotP(BC,BR) && dotP(BC,BR) <= dotP(BC,BC))
 	{
-		ROS_INFO("True: Point is within rectangle");
+        //ROS_INFO("True: Point is within rectangle");
 		return true;
 
 	}
-	ROS_INFO("False: Point is outside rectangle");
+    //ROS_INFO("False: Point is outside rectangle");
 	return false;
 }
 
