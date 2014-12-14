@@ -84,9 +84,11 @@ void WayPoint::waypointCallback(const sdu_rsd_waypoint::Waypoint::ConstPtr &data
     waypoint.Y = data->Y;
     waypoint.Theta = data->Theta;
     waypoint.Obstacle_avoidance = data->Obstacle_avoidance;
+    waypoint.Angle_threshold = data->Angle_threshold;
+    waypoint.Position_threshold = data->Position_threshold;
 
     waypoints.push_back(waypoint);
-    ROS_DEBUG("Waypoint recieved: %f %f", waypoint.X, waypoint.Y);
+    //ROS_DEBUG("Waypoint recieved: %f %f", waypoint.X, waypoint.Y);
 }
 
 int closest_index = 0;
@@ -398,7 +400,7 @@ void WayPoint::gotoWaypoint()
     double robotRealAngle = getRobotAngle();
 
     //Cheats a bit, so if we are in the goal position but the robot does not have the right theta, then say to angletowaypoint is equal to theta
-    if(parameters.waypoint_reached_threshold > errorDistance)
+    if(/*parameters.waypoint_reached_threshold*/wayPoint.Position_threshold > errorDistance)
     {
         //ROS_DEBUG("IN GOAL - TURN TO OBTAIN CORRECT THETA: %f %f", wayPoint.Theta, robotRealAngle);
         waypointRealAngle = wayPoint.Theta;
@@ -471,12 +473,12 @@ void WayPoint::gotoWaypoint()
 
     //TODO: CHECK IF WAYPOINT IS IN SIGHT OR IN COLLISION.
     //Check if the waypoint is reached.
-    if(parameters.waypoint_reached_threshold > errorDistance)
+    if(/*parameters.waypoint_reached_threshold*/wayPoint.Position_threshold > errorDistance)
     {
         //ROS_DEBUG("Error angle: %f", (robotRealAngle - waypointRealAngle));
         //Checks if the angle on the waypoint is OK. If then, then tell the other nodes we have arrived at the waypoint.
         //If the angle defined by the usercall is not between 0 and 360 then the waypoint is reached without having an final turn
-        if(fabs(robotRealAngle - waypointRealAngle) < parameters.waypoint_reached_threshold_angle || wayPoint.Theta < 0 || wayPoint.Theta > 360)
+        if(fabs(robotRealAngle - waypointRealAngle) < /*parameters.waypoint_reached_threshold_angle*/wayPoint.Angle_threshold || wayPoint.Theta < 0 || wayPoint.Theta > 360)
         {
             ROS_DEBUG("Waypoint reached at %f, %f, %f Robot(%f, %f, %f)", wayPoint.X, wayPoint.Y, wayPoint.Theta, odometryPose.pose.position.x, odometryPose.pose.position.y, getRobotAngle());
 
