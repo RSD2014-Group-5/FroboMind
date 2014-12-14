@@ -44,7 +44,7 @@
 
 	</group>
 	
-	<arg name="map_file" default="/home/kasper/rsdmap.yaml"/>
+	<arg name="map_file" default="$(find slamtest_package)/rsdmap.yaml"/>
   	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
 	<node pkg="amcl" type="amcl" name="amcl" output="screen">
