@@ -3,7 +3,6 @@
 	<node pkg="sdu_rsd_waypoint" type="sdu_rsd_waypoint_node" name="waypoint" output="screen">
 		<param name="waypoint_sub" value="/waypoint_goto" />
 		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
-		<param name="deadman_pub" value="/fmCommand/deadman" />
 		<param name="waypointreached_pub" value="/waypoint_reached" />
 		<param name="odometry_sub" value="/fmKnowledge/pose" />
 		<!--<param name="odometry_sub" value="/slam_pose" />-->

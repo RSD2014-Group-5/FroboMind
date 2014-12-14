@@ -1,0 +1,14 @@
+<launch>
+ <!-- This assumes roscore is running on this machine or the robot -->
+	<node pkg="sdu_rsd_deadman" type="sdu_rsd_deadman_node" name="deadman" output="screen">
+		<param name="active_sub" value="/obstacle_stop_active" />
+		<param name="deadman_pub" value="/fmCommand/deadman" />
+		
+		<param name="laserscan_sub" value="/LaserScanner/scan" />
+		<param name="laserscan_frame" value="/laser" />
+
+		<param name="max_points" value="10" />
+		<param name="max_distance" value="0.5" />
+		<param name="angle" value="90" />
+	</node>
+</launch>

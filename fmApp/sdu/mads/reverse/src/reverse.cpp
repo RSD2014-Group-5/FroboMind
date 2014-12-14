@@ -27,8 +27,8 @@ Reverse::Reverse()
     local_nh.param<std::string>("cmd_vel_pub", parameters.cmd_vel_pub, "/fmCommand/cmd_vel");
     velocity_pub = n.advertise<geometry_msgs::TwistStamped>(parameters.cmd_vel_pub, 10);
 
-    local_nh.param<std::string>("deadman_pub", parameters.deadman_pub, "/fmCommand/deadman");
-    deadman_pub = n.advertise<std_msgs::Bool>(parameters.deadman_pub, 10);
+    //local_nh.param<std::string>("deadman_pub", parameters.deadman_pub, "/fmCommand/deadman");
+    //deadman_pub = n.advertise<std_msgs::Bool>(parameters.deadman_pub, 10);
 
     /* Loads parameters from launch file */
     local_nh.param<double>("speed", parameters.speed, 1);
@@ -81,9 +81,9 @@ void Reverse::spinItDJ()
 void Reverse::moveRobot(double forward, double turn)
 {
     //Publish deadman
-    std_msgs::Bool deadman = std_msgs::Bool();
+    /*std_msgs::Bool deadman = std_msgs::Bool();
     deadman.data = true;
-    deadman_pub.publish(deadman);
+    deadman_pub.publish(deadman);*/
 
     geometry_msgs::TwistStamped cmd_velocity;
     cmd_velocity.header.stamp = ros::Time::now();

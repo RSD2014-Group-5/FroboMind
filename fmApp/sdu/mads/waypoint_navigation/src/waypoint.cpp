@@ -20,8 +20,8 @@ WayPoint::WayPoint()
     local_nh.param<std::string>("cmd_vel_pub", parameters.cmd_vel_pub, "/fmCommand/cmd_vel");
     velocity_pub = n.advertise<geometry_msgs::TwistStamped>(parameters.cmd_vel_pub, 10);
 
-    local_nh.param<std::string>("deadman_pub", parameters.deadman_pub, "/fmCommand/deadman");
-    deadman_pub = n.advertise<std_msgs::Bool>(parameters.deadman_pub, 10);
+    //local_nh.param<std::string>("deadman_pub", parameters.deadman_pub, "/fmCommand/deadman");
+    //deadman_pub = n.advertise<std_msgs::Bool>(parameters.deadman_pub, 10);
 
     local_nh.param<std::string>("waypointreached_pub", parameters.waypointreached_pub, "/fmKnowledge/waypoint_reached");
     waypointreached_pub = n.advertise<std_msgs::Bool>(parameters.waypointreached_pub, 10);
@@ -379,9 +379,9 @@ void WayPoint::gotoWaypoint()
         return;
 
     //Publish deadman
-    std_msgs::Bool deadman = std_msgs::Bool();
+    /*std_msgs::Bool deadman = std_msgs::Bool();
     deadman.data = true;
-    deadman_pub.publish(deadman);
+    deadman_pub.publish(deadman);*/
 
     //Defines the local variables used for calculations in this function.
     sdu_rsd_waypoint::Waypoint wayPoint = this->waypoints[0];
