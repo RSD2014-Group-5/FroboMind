@@ -215,13 +215,13 @@ void SLAMPose::NavModeCallback(const std_msgs::UInt32 nav_mode_msg)
 	if(nav_mode_msg.data == 1)
 	{
 		//Initialize AMCL to a fixed position when switching to dispenser area mode
-		reinit_pose.pose.pose.position.x = 0.55;
-		reinit_pose.pose.pose.position.y = -0.34;
+        reinit_pose.pose.pose.position.x = 0.534312888697;
+        reinit_pose.pose.pose.position.y = -0.358916530073;
 		reinit_pose.pose.pose.position.z = 0;
 		reinit_pose.pose.pose.orientation.x = 0.0;
 		reinit_pose.pose.pose.orientation.y = 0.0;
-		reinit_pose.pose.pose.orientation.z = -0.333999438659;
-		reinit_pose.pose.pose.orientation.w = 0.942573273001;
+        reinit_pose.pose.pose.orientation.z = -0.324789508135;
+        reinit_pose.pose.pose.orientation.w = 0.945786326506;
 		reinit_pose.header.frame_id = "/map";
 		reinit_pose.header.stamp = ros::Time();
 		initialpose_pub.publish(reinit_pose);
