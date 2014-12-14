@@ -245,6 +245,7 @@ void SLAMPose::GPSPoseCallback(const nav_msgs::OdometryConstPtr& gps_pose_msg)
 			ROS_INFO("Angle: %f", (tf::getYaw(robot_pose.pose.pose.orientation)*180)/M_PI);
 		}
 		angle_print_cnt++;
+		SendRobotAreaPosition(robot_pose);
 		pose_pub.publish(robot_pose);
 	}
 }
@@ -273,6 +274,7 @@ void SLAMPose::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 			slam_pose.pose.pose.position.y = map_pose.pose.position.y;
 			slam_pose.pose.pose.position.z = map_pose.pose.position.z;
 			slam_pose.pose.pose.orientation = map_pose.pose.orientation;
+			SendRobotAreaPosition(slam_pose);
 			pose_pub.publish(slam_pose);
 
 		}
@@ -285,6 +287,7 @@ void SLAMPose::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 }
 
 void SLAMPose::WaypointCallback(std_msgs::Bool wp_reached){
+	/*
 	ROS_INFO("Wpcallback");
 
 	geometry_msgs::PoseStamped next_wp_pose;
@@ -307,7 +310,7 @@ void SLAMPose::WaypointCallback(std_msgs::Bool wp_reached){
 		//waypoint_pub.publish(wp_point);
 	}
 	waypoint_number++;
-
+*/
 }
 
 void SLAMPose::SendRobotAreaPosition(nav_msgs::Odometry current_pose)
