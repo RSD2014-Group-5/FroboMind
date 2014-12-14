@@ -19,6 +19,180 @@ SLAMPose::SLAMPose(int t)
 	reinit_pose.header.frame_id = "/map";
 	reinit_pose.header.stamp = ros::Time();
 	//initialpose_pub.publish(reinit_pose);
+
+	Ramp_In_A.x = 1.0;
+	Ramp_In_A.y = -0.41;
+
+	Ramp_In_B.x = 0.72;
+	Ramp_In_B.y = -0.80;
+
+	Ramp_In_C.x = 2.24;
+	Ramp_In_C.y = -1.90;
+	corner_points.clear();
+	corner_points.push_back(Ramp_In_A);
+	corner_points.push_back(Ramp_In_B);
+	corner_points.push_back(Ramp_In_C);
+
+	for (int i = 0; i < corner_points.size(); i++)
+	{
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "/map";
+		marker.header.stamp = ros::Time();
+		marker.ns = "Ramp_In";
+		marker.id = i;
+		marker.type = visualization_msgs::Marker::CUBE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = corner_points[i].x;
+		marker.pose.position.y = corner_points[i].y;
+		marker.pose.position.z = 0;
+		marker.scale.x = 0.08;
+		marker.scale.y = 0.08;
+		marker.scale.z = 0.08;
+		marker.color.a = 1;
+		marker.color.r = 0.0;
+		marker.color.g = 0.0;
+		marker.color.b = 1.0;
+
+		marker_array.markers.push_back(marker);
+	}
+
+	Ramp_Out_A.x = 0.72;
+	Ramp_Out_A.y = -0.80;
+
+	Ramp_Out_B.x = 0.11;
+	Ramp_Out_B.y = -1.38;
+
+	Ramp_Out_C.x = 2.63;
+	Ramp_Out_C.y = -2.36;
+	corner_points.clear();
+	corner_points.push_back(Ramp_Out_A);
+	corner_points.push_back(Ramp_Out_B);
+	corner_points.push_back(Ramp_Out_C);
+
+	for (int i = 0; i < corner_points.size(); i++)
+	{
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "/map";
+		marker.header.stamp = ros::Time();
+		marker.ns = "Ramp_Out";
+		marker.id = i+3;
+		marker.type = visualization_msgs::Marker::CUBE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = corner_points[i].x;
+		marker.pose.position.y = corner_points[i].y;
+		marker.pose.position.z = 0;
+		marker.scale.x = 0.08;
+		marker.scale.y = 0.08;
+		marker.scale.z = 0.08;
+		marker.color.a = 1;
+		marker.color.r = 0.0;
+		marker.color.g = 1.0;
+		marker.color.b = 0.0;
+
+		marker_array.markers.push_back(marker);
+	}
+
+	InBox_A.x = 2.46;
+	InBox_A.y = -1.54;
+
+	InBox_B.x = 2.24;
+	InBox_B.y = -1.90;
+
+	InBox_C.x = 3.58;
+	InBox_C.y = -2.77;
+	corner_points.clear();
+	corner_points.push_back(InBox_A);
+	corner_points.push_back(InBox_B);
+	corner_points.push_back(InBox_C);
+
+	for (int i = 0; i < corner_points.size(); i++)
+	{
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "/map";
+		marker.header.stamp = ros::Time();
+		marker.ns = "InBox";
+		marker.id = i+6;
+		marker.type = visualization_msgs::Marker::CUBE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = corner_points[i].x;
+		marker.pose.position.y = corner_points[i].y;
+		marker.pose.position.z = 0;
+		marker.scale.x = 0.08;
+		marker.scale.y = 0.08;
+		marker.scale.z = 0.08;
+		marker.color.a = 1;
+		marker.color.r = 1.0;
+		marker.color.g = 1.0;
+		marker.color.b = 0.0;
+
+		marker_array.markers.push_back(marker);
+	}
+
+	Dispenser_A.x = 2.63;
+	Dispenser_A.y = -2.36;
+
+	Dispenser_B.x = 3.58;
+	Dispenser_B.y = -2.77;
+
+	Dispenser_C.x = 3.0;
+	Dispenser_C.y = -3.51;
+	corner_points.clear();
+	corner_points.push_back(Dispenser_A);
+	corner_points.push_back(Dispenser_B);
+	corner_points.push_back(Dispenser_C);
+
+	for (int i = 0; i < corner_points.size(); i++)
+	{
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "/map";
+		marker.header.stamp = ros::Time();
+		marker.ns = "Dispenser";
+		marker.id = i+9;
+		marker.type = visualization_msgs::Marker::CUBE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = corner_points[i].x;
+		marker.pose.position.y = corner_points[i].y;
+		marker.pose.position.z = 0;
+		marker.scale.x = 0.08;
+		marker.scale.y = 0.08;
+		marker.scale.z = 0.08;
+		marker.color.a = 1;
+		marker.color.r = 1.0;
+		marker.color.g = 1.0;
+		marker.color.b = 1.0;
+
+		marker_array.markers.push_back(marker);
+	}
+
+	//charger
+	/*
+	 *
+	pose:
+    position:
+      x: 2.94097087345
+      y: -1.36965526915
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+      z: 0.444895489954
+      w: 0.895582493698
+	 *
+	 *
+	 *Waypoint reached at 2.974795, -1.331806, -1.000000 Robot(2.941834, -1.368542, 52.189346)
+	 */
+
+	/*
+	 * ramp out / dispenser intersection
+	  x: 2.63252301018
+      y: -2.36282965026
+	 *
+	 *ramp in / ramp out skillelinie
+	 *       x: 0.720235221179
+      y: -0.802941231511
+	 *
+	 */
+
 }
 
 void SLAMPose::ReinitCallback(const std_msgs::Bool reinit_amcl)
@@ -136,8 +310,61 @@ void SLAMPose::WaypointCallback(std_msgs::Bool wp_reached){
 
 }
 
+void SLAMPose::SendRobotAreaPosition(nav_msgs::Odometry current_pose)
+{
+	Robot_point.x = current_pose.pose.pose.position.x;
+	Robot_point.y = current_pose.pose.pose.position.y;
+	//First test which nav_mode the robot is in (since there is no global / absolute coordinate frame)
+	switch (nav_mode)
+	{
+		case 0:
+		{
+			if(current_pose.pose.pose.position.x > -0.1 && current_pose.pose.pose.position.x < 2.0)
+			{
+				robot_area_pos.data = "FloorIn";
+			}
+			else if(current_pose.pose.pose.position.x < -0.1 && current_pose.pose.pose.position.x  > -2.0)
+			{
+				robot_area_pos.data = "FloorOut";
+			}
+		}
+		break;
+		case 1:
+		{
+			if(withinArea(Ramp_In_A,Ramp_In_B,Ramp_In_C, Robot_point))
+			{
+				robot_area_pos.data = "RampIn";
+			}
+			else if(withinArea(Ramp_Out_A,Ramp_Out_B,Ramp_Out_C, Robot_point))
+			{
+				robot_area_pos.data = "RampOut";
+			}
+			else if(withinArea(InBox_A,InBox_B,InBox_C, Robot_point))
+			{
+				robot_area_pos.data = "InBox";
+			}
+			else if(withinArea(Dispenser_A,Dispenser_B,Dispenser_C, Robot_point))
+			{
+				robot_area_pos.data = "Dispenser";
+			}
+		}
+		break;
+		case 2:
+		{
+			robot_area_pos.data = "Line";
+		}
+		break;
+	}
+	robot_area_pos_pub.publish(robot_area_pos);
+}
+
 void SLAMPose::ClickedPointCallback(geometry_msgs::PointStamped clicked_point){
 	ROS_INFO("Next WP (x,y): (%f,%f)", clicked_point.point.x,clicked_point.point.y);
+
+	tmp.x = clicked_point.point.x;
+	tmp.y = clicked_point.point.y;
+
+	withinArea(Ramp_In_A,Ramp_In_B,Ramp_In_C,tmp);
 
 	wp_obs.X = clicked_point.point.x;
 	wp_obs.Y = clicked_point.point.y;
@@ -149,7 +376,7 @@ void SLAMPose::ClickedPointCallback(geometry_msgs::PointStamped clicked_point){
 	marker.header.frame_id = "/map";
 	marker.header.stamp = ros::Time();
 	marker.ns = "waypoint";
-	marker.type = visualization_msgs::Marker::CUBE;
+	marker.type = visualization_msgs::Marker::SPHERE;
 	marker.action = visualization_msgs::Marker::ADD;
 	marker.pose.position.x = clicked_point.point.x;
 	marker.pose.position.y = clicked_point.point.y;
@@ -162,8 +389,50 @@ void SLAMPose::ClickedPointCallback(geometry_msgs::PointStamped clicked_point){
 	marker.color.g = 0.0;
 	marker.color.b = 0.0;
 
-	pose_marker_pub.publish(marker);
+	marker_array.markers.push_back(marker);
+	//pose_marker_pub.publish(marker_array);
+	updateMarkers();
 
+}
+bool SLAMPose::withinArea(geometry_msgs::Point A, geometry_msgs::Point B, geometry_msgs::Point C, geometry_msgs::Point R)
+{
+	//ROS_INFO("withinArea function called");
+	AB.x = B.x-A.x;
+	AB.y = B.y-A.y;
+
+	BC.x = C.x-B.x;
+	BC.y = C.y-B.y;
+
+	AR.x = R.x-A.x;
+	AR.y = R.y-A.y;
+
+	BR.x = R.x-B.x;
+	BR.y = R.y-B.y;
+/*
+	ROS_INFO("dotP(AB,AR): %f", dotP(AB,AR));
+	ROS_INFO("dotP(AB,AB): %f", dotP(AB,AB));
+
+	ROS_INFO("dotP(BC,BR): %f", dotP(BC,BR));
+	ROS_INFO("dotP(BC,BC): %f", dotP(BC,BC));
+*/
+	if(0 <= dotP(AB,AR) && dotP(AB,AR) <= dotP(AB,AB) && 0 <= dotP(BC,BR) && dotP(BC,BR) <= dotP(BC,BC))
+	{
+		ROS_INFO("True: Point is within rectangle");
+		return true;
+
+	}
+	ROS_INFO("False: Point is outside rectangle");
+	return false;
+}
+
+
+void SLAMPose::updateMarkers(){
+	pose_marker_pub.publish(marker_array);
+}
+
+float SLAMPose::dotP(geometry_msgs::Point U, geometry_msgs::Point V)
+{
+	return U.x*V.x+U.y*V.y;
 }
 
 void SLAMPose::LaserScanCallback(sensor_msgs::LaserScan laser_scan){

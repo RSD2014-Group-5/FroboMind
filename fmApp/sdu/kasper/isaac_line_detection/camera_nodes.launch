@@ -1,0 +1,21 @@
+<!-- frobit launch file 
+
+FroboMind controller frobits using 22000/3300 ohm voltage dividers:
+	supply_voltage_scale_factor = 0.03747
+
+RoboCard based frobits using 1800/700 ohm voltage dividers: 
+	supply_voltage_scale_factor = 0.01746
+
+-->
+
+<launch>
+
+	<node pkg="usb_cam" name="usb_cam" type="usb_cam_node" />  
+	
+	<node pkg="line_nodes" name="line_det" type="line_det" /> 
+
+	<node pkg="line_nodes" name="barcode_det" type="barcode_det" />
+
+	
+</launch>
+

@@ -146,20 +146,13 @@
 		<param name="ki_angle" value="0.0" />
 		<param name="kd_angle" value="0.00" />
 -->
-		<param name="kp_angle" value=".005" />
+		<param name="kp_angle" value=".0025" />
 		<param name="ki_angle" value="0.0" />
-		<param name="kd_angle" value="0.00" />
+		<param name="kd_angle" value="0.001" />
 		
 		<param name="kp_distance" value="0.5" />
 		<param name="ki_distance" value="0.0" />
 		<param name="kd_distance" value="0.01" />
 	</node>
-	
-	
-	
-		
-	
-	
-	
 
 </launch>

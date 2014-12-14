@@ -1,0 +1,8 @@
+# Define the goal
+string direction  # left or right
+---
+# Define the result
+string success  # succeded
+---
+# Define a feedback message
+string state  #others (not defined)

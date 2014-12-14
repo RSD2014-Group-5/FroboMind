@@ -1,0 +1,26 @@
+<!-- frobit launch file 
+
+FroboMind controller frobits using 22000/3300 ohm voltage dividers:
+	supply_voltage_scale_factor = 0.03747
+
+RoboCard based frobits using 1800/700 ohm voltage dividers: 
+	supply_voltage_scale_factor = 0.01746
+
+-->
+
+<launch>
+	<param name="Robot_goal" value="End Robot 2" />
+
+	<node pkg="pid_controller" name="lineFollowFSM_backwards" type="lineFollowFSM_backwards.py" /> 
+
+	<node pkg="line_til_cross_action_backwards" name="Gocell_back" type="line_server_back" output="screen" /> 
+
+	
+	<param name="Robot_1_offset" value="200" />
+	<param name="Robot_2_offset" value="120" />
+	<param name="Robot_3_offset" value="320" />
+
+	
+
+</launch>
+

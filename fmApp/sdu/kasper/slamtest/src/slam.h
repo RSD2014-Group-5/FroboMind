@@ -14,6 +14,7 @@
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/UInt32.h"
+#include "std_msgs/String.h"
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 
@@ -22,6 +23,7 @@
 #include <tf/transform_listener.h>
 #include <tf/tf.h>
 #include <tf/LinearMath/Transform.h>
+#include <numeric>
 
 #include <tf/transform_datatypes.h>
 #include <sdu_rsd_waypoint/Waypoint.h>
@@ -38,6 +40,36 @@ class SLAMPose
 		geometry_msgs::Point wp_point;
 		nav_msgs::Odometry next_wp;
 		sdu_rsd_waypoint::Waypoint wp_obs;
+		std_msgs::String robot_area_pos;
+
+		geometry_msgs::Point Robot_point;
+
+		geometry_msgs::Point Ramp_In_A;
+		geometry_msgs::Point Ramp_In_B;
+		geometry_msgs::Point Ramp_In_C;
+
+		geometry_msgs::Point Ramp_Out_A;
+		geometry_msgs::Point Ramp_Out_B;
+		geometry_msgs::Point Ramp_Out_C;
+
+		geometry_msgs::Point InBox_A;
+		geometry_msgs::Point InBox_B;
+		geometry_msgs::Point InBox_C;
+
+		geometry_msgs::Point Dispenser_A;
+		geometry_msgs::Point Dispenser_B;
+		geometry_msgs::Point Dispenser_C;
+//		geometry_msgs::Point R;
+//		geometry_msgs::Point AB;
+//		geometry_msgs::Point BC;
+//		geometry_msgs::Point AR;
+//		geometry_msgs::Point BR;
+		geometry_msgs::Point tmp;
+		geometry_msgs::Point AB, BC, AR, BR;
+		visualization_msgs::MarkerArray marker_array;
+		visualization_msgs::Marker temp_marker;
+		std::vector<geometry_msgs::Point> corner_points;
+
 
 		//0 = floor
 		//1 = dispenser
@@ -46,10 +78,12 @@ class SLAMPose
 		int angle_print_cnt;
 		bool reinit;
 		int waypoint_number;
+
 	public:
 
 		SLAMPose(int t);
 
+		ros::Publisher robot_area_pos_pub;
 		ros::Publisher pose_pub;
 		ros::Subscriber odom_sub;
 		ros::Subscriber odom_gnss_sub;
@@ -78,6 +112,10 @@ class SLAMPose
 		void ReinitCallback(std_msgs::Bool reinit_amcl);
 		void GPSPoseCallback(const nav_msgs::OdometryConstPtr& gps_pose_msg);
 		void NavModeCallback(std_msgs::UInt32 nav_mode_msg);
+		void SendRobotAreaPosition(nav_msgs::Odometry);
+		float dotP(geometry_msgs::Point U, geometry_msgs::Point V);
+		bool withinArea(geometry_msgs::Point A, geometry_msgs::Point B, geometry_msgs::Point C, geometry_msgs::Point R);
+		void updateMarkers();
 
 };
 

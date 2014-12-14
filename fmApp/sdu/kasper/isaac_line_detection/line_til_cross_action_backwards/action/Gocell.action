@@ -1,0 +1,8 @@
+# Define the goal
+string cell_name  # To what workcell we want to go
+---
+# Define the result
+string cell_final  # final workcell that we go
+---
+# Define a feedback message
+string cell_current  #cell that we are now
