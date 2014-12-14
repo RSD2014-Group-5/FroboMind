@@ -155,4 +155,25 @@
 		<param name="kd_distance" value="0.01" />
 	</node>
 
+		<node pkg="sdu_rsd_deadman" type="sdu_rsd_deadman_node" name="deadman" output="screen">
+		<param name="active_sub" value="/obstacle_stop_active" />
+		<param name="deadman_pub" value="/fmCommand/deadman" />
+		
+		<param name="laserscan_sub" value="/LaserScanner/scan" />
+		<param name="laserscan_frame" value="/laser" />
+
+		<param name="max_points" value="10" />
+		<param name="max_distance" value="0.5" />
+		<param name="angle" value="90" />
+	</node>
+
+	<node pkg="sdu_rsd_reverse" type="sdu_rsd_reverse_node" name="reverse" output="screen">
+		<param name="reverse_sub" value="/reverse_distance" />
+		<param name="reverse_pub" value="/reverse_done" />
+		<param name="odometry_sub" value="/fmKnowledge/pose" />
+		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
+
+		<param name="speed" value="-0.2" />
+	</node>
+
 </launch>

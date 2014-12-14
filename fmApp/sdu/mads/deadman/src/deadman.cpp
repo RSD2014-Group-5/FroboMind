@@ -33,7 +33,7 @@ Deadman::Deadman()
     local_nh.param<int>("angle", parameters.angle, 1);
 
     closest_count = 0;
-    active = true;
+    active = false;
 
     //Enables debug logging
     if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
@@ -97,7 +97,7 @@ void Deadman::spinItDJ()
         deadman.data = deadman_var;
         deadman_pub.publish(deadman);
 
-        ROS_DEBUG("Deadman: %d", deadman_var);
+        //ROS_DEBUG("Deadman: %d", deadman_var);
 
         ros::spinOnce();
         r.sleep();
