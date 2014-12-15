@@ -124,7 +124,8 @@
 		<param name="lidar_sub_topic" value="/LaserScanner/scan" />
 		<param name="viz_marker_pub_topic" value="/pose_marker" />
 		<param name="odom_sub_topic" value="/fmKnowledge/pose" />
-		<param name="gps_pose_sub_topic" value="/fmKnowledge/pose_gnss" />
+		<!--<param name="gps_pose_sub_topic" value="/fmKnowledge/pose_gnss" />-->
+		<param name="gps_pose_sub_topic" value="/fmInformation/marker_locator_pose" />
 		<param name="waypoint_pub_topic" value="/waypoint_goto" />
 		<param name="wp_reached_sub_topic" value="/waypoint_reached" />
 		<param name="pose_pub_topic" value="/slam_pose" />

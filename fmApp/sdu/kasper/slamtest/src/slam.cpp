@@ -247,11 +247,14 @@ void SLAMPose::GPSPoseCallback(const nav_msgs::OdometryConstPtr& gps_pose_msg)
 	robot_pose.header.stamp = ros::Time();
 	if(nav_mode == 0)
 	{
+		/*
 		if(angle_print_cnt == 10)
 		{
 			angle_print_cnt = 0;
 			ROS_INFO("Angle: %f", (tf::getYaw(robot_pose.pose.pose.orientation)*180)/M_PI);
 		}
+		*/
+		ROS_INFO("Angle: %f", (tf::getYaw(robot_pose.pose.pose.orientation)*180)/M_PI);
 		angle_print_cnt++;
 		SendRobotAreaPosition(robot_pose);
 		pose_pub.publish(robot_pose);
@@ -291,7 +294,7 @@ void SLAMPose::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 			ROS_ERROR("%s",ex.what());
 		}
 	}
-	updateMarkers();
+	//updateMarkers();
 
 }
 

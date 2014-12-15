@@ -39,49 +39,48 @@ class TCPBridgeClient(asyncore.dispatcher):
 		print self.__class__,"handle_error"
 
 	def handle_read(self):
-#         try:
-              data = self.recv(1024)
-              if not data:
-                  return
+        	try:
+		      data = self.recv(1024)
+		      if not data:
+		          return
 
 
-              #print data
-			  
-              datalist = data.split(',')
-              timestamp = datalist[2]
-              for i in range( (len(datalist) - 3 )/4):
-                  if str(self.order) == datalist[ 3 + i*4]:
-                      x = np.double(datalist[4 + i*4])
-                      y = np.double(datalist[5 + i*4])
-                      th = np.double(datalist[6 + i*4])
-                      
-              """ create and pubish tranmerc """
-              
-#              geometry_msgs.Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
-              odom_quat = tf.transformations.quaternion_from_euler(0,0,th)
-              q = geometry_msgs.msg.Quaternion(odom_quat[0],odom_quat[1],odom_quat[2],odom_quat[3])
+		      #print data
+				  
+		      datalist = data.split(',')
+		      timestamp = datalist[2]
+		      for i in range( (len(datalist) - 3 )/4):
+		          if str(self.order) == datalist[ 3 + i*4]:
+		              x = np.double(datalist[4 + i*4])
+		              y = np.double(datalist[5 + i*4])
+		              th = np.double(datalist[6 + i*4])
+		              
+		      """ create and pubish tranmerc """
+		      
+	#              geometry_msgs.Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+		      odom_quat = tf.transformations.quaternion_from_euler(0,0,th)
+		      q = geometry_msgs.msg.Quaternion(odom_quat[0],odom_quat[1],odom_quat[2],odom_quat[3])
 
 
-              odom = nav_msgs.msg.Odometry()
-#              odom.header.stamp.secs = int(timestamp)
-              odom.header.frame_id = "gps"
-            
-              odom.pose.pose.position.x = x/100;
-              odom.pose.pose.position.y = y/100;
-              odom.pose.pose.position.z = 0.0;
-#              print type(odom_quat)
-              odom.pose.pose.orientation = q;
-             
-              odom.child_frame_id = "base_footprint_gps";
-              odom.twist.twist.linear.x = 0;
-              odom.twist.twist.linear.y = 0;
-              odom.twist.twist.angular.z = 0;
-            
-              self.odom_pub.publish(odom);
+		      odom = nav_msgs.msg.Odometry()
+	#              odom.header.stamp.secs = int(timestamp)
+		      odom.header.frame_id = "gps"
+		    
+		      odom.pose.pose.position.x = x/100;
+		      odom.pose.pose.position.y = y/100;
+		      odom.pose.pose.position.z = 0.0;
+	#              print type(odom_quat)
+		      odom.pose.pose.orientation = q;
+		     
+		      odom.child_frame_id = "base_footprint_gps";
+		      odom.twist.twist.linear.x = 0;
+		      odom.twist.twist.linear.y = 0;
+		      odom.twist.twist.angular.z = 0;
+		    
+		      self.odom_pub.publish(odom);
 
-#         except:
-#            print "error "
-#            pass
+		except:
+			pass
          
  
 
