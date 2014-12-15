@@ -1,86 +1,101 @@
 <launch>
-<!--
-	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
-		<param name="base_frame" value="base_footprint"/>
-		<param name="minimumScore" value="50.0"/>
-	    <param name="map_update_interval" value="1.0"/>
-	    <param name="maxUrange" value="2.0"/>
-	    <param name="maxRange" value="3.8"/>
-	    <param name="sigma" value="0.1"/>
-	    <param name="kernelSize" value="1"/>
-	    <param name="lstep" value="0.15"/>
-	    <param name="astep" value="0.15"/>
-	    <param name="iterations" value="5"/>
-	    <param name="lsigma" value="0.1"/>
-	    <param name="ogain" value="3.0"/>
-	    <param name="lskip" value="1"/>
-	    <param name="srr" value="0.1"/>
-	    <param name="srt" value="0.2"/>
-	    <param name="str" value="0.1"/>
-	    <param name="stt" value="0.2"/>
-	    <param name="linearUpdate" value="0.2"/>
-	    <param name="angularUpdate" value="0.3"/>
-	    <param name="temporalUpdate" value="5"/>
-	    <param name="resampleThreshold" value="0.5"/>
-	    <param name="particles" value="50"/>
-	    <param name="xmin" value="-15.0"/>
-	    <param name="ymin" value="-15.0"/>
-	    <param name="xmax" value="15.0"/>
-	    <param name="ymax" value="15.0"/>
-	    <param name="delta" value="0.02"/>
-	    <param name="llsamplerange" value="0.01"/>
-	    <param name="llsamplestep" value="0.05"/>
-	    <param name="lasamplerange" value="0.05"/>
-	    <param name="lasamplestep" value="0.05"/>
-	    <remap from="/scan" to="/LaserScanner/scan" />
-	</node>
--->
+	<arg name="map_file" default="$(find slamtest_package)/rsdmap.yaml"/>
+  	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
 	<group ns="fmLib">
 		<node pkg="socket_pose" type="tcp_client.py" name="marker_locator_tcp_client">
 			<param name="order" value="9" />
 			<param name="odom_pub" value="/fmInformation/marker_locator_pose" />
 		</node>
-
 	</group>
 	
-	<arg name="map_file" default="$(find slamtest_package)/rsdmap.yaml"/>
-  	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+	<node pkg="sdu_rsd_waypoint" type="sdu_rsd_waypoint_node" name="waypoint" output="screen">
+		<param name="waypoint_sub" value="/waypoint_goto" />
+		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
+		<param name="deadman_pub" value="/fmCommand/deadman" />
+		<param name="waypointreached_pub" value="/waypoint_reached" />
+		<!--<param name="odometry_sub" value="/fmKnowledge/pose" />-->
+		<param name="odometry_sub" value="/slam_pose" />
+		<param name="laserscan_sub" value="/LaserScanner/scan" />
+		<param name="laserscan_frame" value="/laser" />
+
+		<param name="max_turn_output" value="10" /> <!-- Angle difference to turn on spot -->
+
+		<param name="waypoint_reached_threshold" value="0.05" /> <!-- Threshold of when the waypoint is reached. -->
+		<param name="waypoint_reached_threshold_angle" value="5" /> <!-- Threshold of when the waypoint is reached (Angle). -->
+
+		<param name="max_distance_obstacle" value="0.50" />
+		<param name="speed_obstacle" value="0.5" />
+		<param name="min_closepoints" value="15" />
+		<param name="clearance_distance" value="0.2" />
+
+		<param name="kp_obstacle" value="0.05" />
+		<param name="kd_obstacle" value="0.002" />
+
+		<param name="kp_angle" value=".0015" />
+		<param name="ki_angle" value="0.0" />
+		<param name="kd_angle" value=".001" />
+		
+		<param name="kp_distance" value="0.5" />
+		<param name="ki_distance" value="0.0" />
+		<param name="kd_distance" value="0.01" />
+	</node>
+
+	<node pkg="sdu_rsd_deadman" type="sdu_rsd_deadman_node" name="deadman" output="screen">
+		<param name="active_sub" value="/obstacle_stop_active" />
+		<param name="deadman_pub" value="/fmCommand/deadman" />
+		
+		<param name="laserscan_sub" value="/LaserScanner/scan" />
+		<param name="laserscan_frame" value="/laser" />
+
+		<param name="max_points" value="10" />
+		<param name="max_distance" value="0.5" />
+		<param name="angle" value="90" />
+	</node>
+
+	<node pkg="sdu_rsd_reverse" type="sdu_rsd_reverse_node" name="reverse" output="screen">
+		<param name="reverse_sub" value="/reverse_distance" />
+		<param name="reverse_pub" value="/reverse_done" />
+		<param name="odometry_sub" value="/fmKnowledge/pose" />
+		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
+
+		<param name="speed" value="-0.2" />
+	</node>
 
 	<node pkg="amcl" type="amcl" name="amcl" output="screen">
-	    <remap from="scan" to="/LaserScanner/scan"/>
-	    <param name="odom_frame_id" value="odom"/>
-	    <param name="base_frame_id" value="base_footprint"/>
-	    <param name="odom_model_type" value="diff"/>
-	    <param name="laser_model_type" value="likelihood_field"/>
-	    <param name="use_map_topic" value="false"/>
-	    <param name="odom_alpha5" value="0.1"/>
-	    <param name="transform_tolerance" value="0.2" />
-	    <param name="gui_publish_rate" value="10.0"/>
-	    <param name="laser_max_beams" value="30"/>
-	    <param name="min_particles" value="500"/>
-	    <param name="max_particles" value="5000"/>
-	    <param name="kld_err" value="0.05"/>
-	    <param name="kld_z" value="0.99"/>
-	    <param name="odom_alpha1" value="0.2"/>
-	    <param name="odom_alpha2" value="0.2"/>
-	    <param name="odom_alpha3" value="0.8"/>
-	    <param name="odom_alpha4" value="0.2"/>
-	    <param name="laser_z_hit" value="0.5"/>
-	    <param name="laser_z_short" value="0.05"/>
-	    <param name="laser_z_max" value="0.05"/>
-	    <param name="laser_z_rand" value="0.5"/>
-	    <param name="laser_sigma_hit" value="0.2"/>
-	    <param name="laser_lambda_short" value="0.1"/>
-	    <param name="laser_lambda_short" value="0.1"/>
-	    <param name="laser_likelihood_max_dist" value="2.0"/>
-	    <param name="update_min_d" value="0.2"/>
-	    <param name="update_min_a" value="0.5"/>
-	    <param name="resample_interval" value="1"/>
-	    <param name="transform_tolerance" value="0.1"/>
-	    <param name="recovery_alpha_slow" value="0.0"/>
-	    <param name="recovery_alpha_fast" value="0.0"/>
-	
+		<remap from="scan" to="/LaserScanner/scan"/>
+		<param name="odom_frame_id" value="odom"/>
+		<param name="base_frame_id" value="base_footprint"/>
+		<param name="odom_model_type" value="diff"/>
+		<param name="laser_model_type" value="likelihood_field"/>
+		<param name="use_map_topic" value="false"/>
+		<param name="odom_alpha5" value="0.1"/>
+		<param name="transform_tolerance" value="0.2" />
+		<param name="gui_publish_rate" value="10.0"/>
+		<param name="laser_max_beams" value="30"/>
+		<param name="min_particles" value="500"/>
+		<param name="max_particles" value="5000"/>
+		<param name="kld_err" value="0.05"/>
+		<param name="kld_z" value="0.99"/>
+		<param name="odom_alpha1" value="0.2"/>
+		<param name="odom_alpha2" value="0.2"/>
+		<param name="odom_alpha3" value="0.8"/>
+		<param name="odom_alpha4" value="0.2"/>
+		<param name="laser_z_hit" value="0.5"/>
+		<param name="laser_z_short" value="0.05"/>
+		<param name="laser_z_max" value="0.05"/>
+		<param name="laser_z_rand" value="0.5"/>
+		<param name="laser_sigma_hit" value="0.2"/>
+		<param name="laser_lambda_short" value="0.1"/>
+		<param name="laser_lambda_short" value="0.1"/>
+		<param name="laser_likelihood_max_dist" value="2.0"/>
+		<param name="update_min_d" value="0.2"/>
+		<param name="update_min_a" value="0.5"/>
+		<param name="resample_interval" value="1"/>
+		<param name="transform_tolerance" value="0.1"/>
+		<param name="recovery_alpha_slow" value="0.0"/>
+		<param name="recovery_alpha_fast" value="0.0"/>
+		<param name="laser_min_range" value="0.1"/>
 	</node>
 	
 	<group ns="fmProcessors">
@@ -115,65 +130,7 @@
 		<param name="pose_pub_topic" value="/slam_pose" />
 		<param name="clicked_point_sub_topic" value="/clicked_point" />
 		<param name="initialpose_pub_topic" value="/initialpose" />
-		<param name="reinit_sub_topic" value="/reinit_amcl" />
-		
-	</node>
-	
-	<node pkg="sdu_rsd_waypoint" type="sdu_rsd_waypoint_node" name="waypoint" output="screen">
-		<param name="waypoint_sub" value="/waypoint_goto" />
-		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
-		<param name="deadman_pub" value="/fmCommand/deadman" />
-		<param name="waypointreached_pub" value="/waypoint_reached" />
-		<!--<param name="odometry_sub" value="/fmKnowledge/pose" />-->
-		<param name="odometry_sub" value="/slam_pose" />
-		<param name="laserscan_sub" value="/LaserScanner/scan" />
-		<param name="laserscan_frame" value="/laser" />
-
-		<param name="max_turn_output" value="10" /> <!-- Angle difference to turn on spot -->
-
-		<param name="waypoint_reached_threshold" value="0.05" /> <!-- Threshold of when the waypoint is reached. -->
-		<param name="waypoint_reached_threshold_angle" value="5" /> <!-- Threshold of when the waypoint is reached (Angle). -->
-
-		<param name="max_distance_obstacle" value="0.50" />
-		<param name="speed_obstacle" value="0.5" />
-		<param name="min_closepoints" value="15" />
-		<param name="clearance_distance" value="0.2" />
-
-		<param name="kp_obstacle" value="0.05" />
-		<param name="kd_obstacle" value="0.002" />
-<!-- 
-		<param name="kp_angle" value=".01" />
-		<param name="ki_angle" value="0.0" />
-		<param name="kd_angle" value="0.00" />
--->
-		<param name="kp_angle" value=".0015" />
-		<param name="ki_angle" value="0.0" />
-		<param name="kd_angle" value=".001" />
-		
-		<param name="kp_distance" value="0.5" />
-		<param name="ki_distance" value="0.0" />
-		<param name="kd_distance" value="0.01" />
-	</node>
-
-		<node pkg="sdu_rsd_deadman" type="sdu_rsd_deadman_node" name="deadman" output="screen">
-		<param name="active_sub" value="/obstacle_stop_active" />
-		<param name="deadman_pub" value="/fmCommand/deadman" />
-		
-		<param name="laserscan_sub" value="/LaserScanner/scan" />
-		<param name="laserscan_frame" value="/laser" />
-
-		<param name="max_points" value="10" />
-		<param name="max_distance" value="0.5" />
-		<param name="angle" value="90" />
-	</node>
-
-	<node pkg="sdu_rsd_reverse" type="sdu_rsd_reverse_node" name="reverse" output="screen">
-		<param name="reverse_sub" value="/reverse_distance" />
-		<param name="reverse_pub" value="/reverse_done" />
-		<param name="odometry_sub" value="/fmKnowledge/pose" />
-		<param name="cmd_vel_pub" value="/fmCommand/cmd_vel" />
-
-		<param name="speed" value="-0.2" />
+		<param name="reinit_sub_topic" value="/reinit_amcl" />	
 	</node>
 
 </launch>
