@@ -137,8 +137,6 @@ bool obstacle_lasttry = false;
 
 bool WayPoint::obstacleDetection()
 {
-    double max_turn = 0.05;
-
     double errorObstacleAngle = 1;
     int angle;
     if(parameters.min_closepoints < closest_index_count)
@@ -199,12 +197,6 @@ bool WayPoint::obstacleDetection()
 
             //Resets the move forward variables.
             move_forward = false;
-
-            //Limits the turning speed
-            if(outputObstacleAngle > max_turn)
-                outputObstacleAngle = max_turn;
-            else if(fabs(outputObstacleAngle) > max_turn)
-                outputObstacleAngle = -max_turn;
 
             //Send out velocity commands that avoid  the obstacle.
             moveRobot(0, outputObstacleAngle);
@@ -373,7 +365,6 @@ double lastErrDistance = 0;
 
 void WayPoint::gotoWaypoint()
 {
-    double max_forwardspeed = 0.3;
     bool inGoal = false;
 
     /*Compute all the working error variables*/
@@ -466,10 +457,6 @@ void WayPoint::gotoWaypoint()
         outputDistance = 0; //Dont drive forward when turning.
     }
 
-    //Limits forward speed.
-    if(outputDistance > max_forwardspeed)
-        outputDistance = max_forwardspeed;
-
 
     //TODO: CHECK IF WAYPOINT IS IN SIGHT OR IN COLLISION.
     //Check if the waypoint is reached.
@@ -508,10 +495,24 @@ void WayPoint::gotoWaypoint()
 
 void WayPoint::moveRobot(double forward, double turn)
 {
+    //Limits forward speed.
+    double max_forwardspeed = 0.2;
+    double forward_temp = forward;
+    if(forward_temp > max_forwardspeed)
+        forward_temp = max_forwardspeed;
+
+    //Limits turn speed
+    double max_turn = 0.05;
+    double temp_turn = turn;
+    if(temp_turn > max_turn)
+        temp_turn = max_turn;
+    else if(fabs(temp_turn) > max_turn)
+        temp_turn = -max_turn;
+
     geometry_msgs::TwistStamped cmd_velocity;
     cmd_velocity.header.stamp = ros::Time::now();
-    cmd_velocity.twist.angular.z = turn; //angle; // * -1; //Negative = turning right, Positive = turning left
-    cmd_velocity.twist.linear.x = forward;
+    cmd_velocity.twist.angular.z = temp_turn; //angle; // * -1; //Negative = turning right, Positive = turning left
+    cmd_velocity.twist.linear.x = forward_temp;
 
     velocity_pub.publish(cmd_velocity);
 }
