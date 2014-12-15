@@ -59,6 +59,14 @@ class SLAMPose
 		geometry_msgs::Point Dispenser_A;
 		geometry_msgs::Point Dispenser_B;
 		geometry_msgs::Point Dispenser_C;
+
+		geometry_msgs::Point Dock1Dock2_inbox;
+		geometry_msgs::Point Dock1Dock2_wall;
+		geometry_msgs::Point Dock2Dock3_inbox;
+		geometry_msgs::Point Dock2Dock3_wall;
+		geometry_msgs::Point RampIn_corner;
+		geometry_msgs::Point Dock3_corner;
+
 //		geometry_msgs::Point R;
 //		geometry_msgs::Point AB;
 //		geometry_msgs::Point BC;

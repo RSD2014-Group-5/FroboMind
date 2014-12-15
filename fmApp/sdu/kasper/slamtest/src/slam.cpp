@@ -164,34 +164,42 @@ SLAMPose::SLAMPose(int t)
 		marker_array.markers.push_back(marker);
 	}
 
-	//charger
-	/*
-	 *
-	pose:
-    position:
-      x: 2.94097087345
-      y: -1.36965526915
-      z: 0.0
-    orientation:
-      x: 0.0
-      y: 0.0
-      z: 0.444895489954
-      w: 0.895582493698
-	 *
-	 *
-	 *Waypoint reached at 2.974795, -1.331806, -1.000000 Robot(2.941834, -1.368542, 52.189346)
-	 */
+	Dock1Dock2_wall.x = 3.38;
+	Dock1Dock2_wall.y = -1.267;
+	Dock2Dock3_wall.x = 3.812;
+	Dock2Dock3_wall.y = -1.59;
+	RampIn_corner.x = 2.45;
+	RampIn_corner.y = -1.52;
+	Dock3_corner.x = 4.22;
+	Dock3_corner.y = -1.92;
+	corner_points.clear();
+	corner_points.push_back(Dock1Dock2_wall);
+	corner_points.push_back(Dock2Dock3_wall);
+	corner_points.push_back(RampIn_corner);
+	corner_points.push_back(Dock3_corner);
 
-	/*
-	 * ramp out / dispenser intersection
-	  x: 2.63252301018
-      y: -2.36282965026
-	 *
-	 *ramp in / ramp out skillelinie
-	 *       x: 0.720235221179
-      y: -0.802941231511
-	 *
-	 */
+	for (int i = 0; i < corner_points.size(); i++)
+	{
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "/map";
+		marker.header.stamp = ros::Time();
+		marker.ns = "Docking stations";
+		marker.id = i+9;
+		marker.type = visualization_msgs::Marker::CUBE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = corner_points[i].x;
+		marker.pose.position.y = corner_points[i].y;
+		marker.pose.position.z = 0;
+		marker.scale.x = 0.08;
+		marker.scale.y = 0.08;
+		marker.scale.z = 0.08;
+		marker.color.a = 1;
+		marker.color.r = 0.5;
+		marker.color.g = 1.0;
+		marker.color.b = 1.0;
+
+		marker_array.markers.push_back(marker);
+	}
 
 }
 
@@ -349,6 +357,18 @@ void SLAMPose::SendRobotAreaPosition(nav_msgs::Odometry current_pose)
 			else if(withinArea(Dispenser_A,Dispenser_B,Dispenser_C, Robot_point))
 			{
 				robot_area_pos.data = "Dispenser";
+			}
+			else if(withinArea(Dock1Dock2_inbox,Dock1Dock2_wall,RampIn_corner, Robot_point))
+			{
+				robot_area_pos.data = "Station1";
+			}
+			else if(withinArea(Dock1Dock2_inbox,Dock1Dock2_wall,Dock2Dock3_inbox, Robot_point))
+			{
+				robot_area_pos.data = "Station2";
+			}
+			else if(withinArea(Dock2Dock3_inbox,Dock2Dock3_wall,Dock3_corner, Robot_point))
+			{
+				robot_area_pos.data = "Station3";
 			}
 		}
 		break;
