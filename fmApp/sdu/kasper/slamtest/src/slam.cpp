@@ -291,6 +291,7 @@ void SLAMPose::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 			ROS_ERROR("%s",ex.what());
 		}
 	}
+	updateMarkers();
 
 }
 
