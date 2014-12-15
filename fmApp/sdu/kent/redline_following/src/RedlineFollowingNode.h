@@ -9,6 +9,7 @@
 #define REDLINEEXTRACTORNODE_H_
 
 #include <vector>
+#include <sstream>
 
 #include <math.h>
 #include <string.h>
@@ -25,16 +26,17 @@
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <pcl/io/pcd_io.h>
 #include <pcl/conversions.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_line.h>
 #include <pcl/filters/extract_indices.h>
 
+#include <redline_following/Line.h>
+
 namespace imageEncoding = sensor_msgs::image_encodings;
 
 typedef pcl::PointXYZ PointT;
-
-//struct PointT : pcl::PointXYZ {inline PointT(double x, double y, double z) {this->x = x; this->y = y; this->z = z;}};
 
 class RedlineExtractorNode
 {
@@ -60,6 +62,12 @@ class RedlineExtractorNode
 	    ros::Publisher poiCloudPublisher;
 	    
 	    sensor_msgs::PointCloud2 poiCloudMsg;
+	    
+	    std::string lineTopic;
+	    std::string lineLink;
+	    ros::Publisher linePublisher;
+	    
+	    redline_following::Line lineMsg;
 	} output;
 
     //  Parameters
@@ -72,18 +80,30 @@ class RedlineExtractorNode
         
         double ransacDistance;
     } params;
+    
+    //  Line models
+    struct
+    {
+        bool lineOneFound;
+        bool lineTwoFound;
+        Eigen::VectorXf lineOne;
+        Eigen::VectorXf lineTwo;
+    } models;
 
 	//	Processed data
 	cv::Mat poiImage;                       //	Points of interest (Image for visualization purpose)
 	pcl::PointCloud<PointT> poiCloud;		//	Points of interest (Point Cloud)
+	pcl::PointCloud<PointT> ransacLineOne;  //	Points of interest (Point Cloud from ransac line one)
+	pcl::PointCloud<PointT> ransacLineTwo;  //	Points of interest (Point Cloud from ransac line two)
 
 	//	Callback
 	void cameraImageCallback(const sensor_msgs::Image::ConstPtr& data);
 
 	//	Processors
 	void processImage (void);
-	void ransac (void);
-
+	void makeLineModels (void);
+	void generateMsg (void);
+	
 public:
 	RedlineExtractorNode();
 	virtual ~RedlineExtractorNode();

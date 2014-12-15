@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(redline_following)
 
-find_package(catkin REQUIRED COMPONENTS cv_bridge image_transport dynamic_reconfigure msgs pcl_ros roscpp sensor_msgs tf visualization_msgs)
+##  ROS
+find_package(catkin REQUIRED COMPONENTS cv_bridge image_transport dynamic_reconfigure msgs pcl_ros roscpp sensor_msgs tf visualization_msgs message_generation std_msgs)
 
 ##	Eigen
 find_package(Eigen3 REQUIRED)
@@ -11,10 +12,15 @@ add_definitions(${EIGEN_DEFINITIONS})
 ##	OpenCV
 find_package(OpenCV REQUIRED)
 
+##  PCL
 find_package(PCL 1.7 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
+
+##  Messages
+add_message_files(FILES Line.msg)
+generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
    INCLUDE_DIRS include

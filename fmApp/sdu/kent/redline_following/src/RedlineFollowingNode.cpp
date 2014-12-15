@@ -35,6 +35,10 @@ RedlineExtractorNode::RedlineExtractorNode()
     this->nodeHandler.param<std::string>("poi_cloud_topic", this->output.poiCloudTopic, "poi_cloud");
     this->nodeHandler.param<std::string>("poi_cloud_link", this->output.poiCloudLink, "/camera_link");
     this->output.poiCloudPublisher = this->nodeHandler.advertise<sensor_msgs::PointCloud2>(this->output.poiCloudTopic, 10);
+    
+    this->nodeHandler.param<std::string>("line_topic", this->output.lineTopic, "line");
+    this->nodeHandler.param<std::string>("line_link", this->output.lineLink, "/line_link");
+    this->output.linePublisher = this->nodeHandler.advertise<redline_following::Line>(this->output.lineTopic, 10);
 
 	//	Setup system input
 	this->input.cvImage.reset(new cv_bridge::CvImage);
@@ -68,8 +72,9 @@ void RedlineExtractorNode::makeItSpin()
         {
       		//	Process data
     		this->processImage();
-    		this->ransac();
-        
+    		this->makeLineModels();
+    		this->generateMsg();
+    		
             //  Update image window if any image has ben received
             cv::imshow("Camera image", this->input.cvImage->image);
             cv::imshow("POI image", this->poiImage);
@@ -84,7 +89,12 @@ void RedlineExtractorNode::makeItSpin()
         this->output.poiCloudMsg.header.stamp = ros::Time::now();
         this->output.poiCloudMsg.header.frame_id = this->output.poiCloudLink;
         this->output.poiCloudPublisher.publish(this->output.poiCloudMsg);
-
+        
+        //  Lines
+        this->output.lineMsg.header.stamp = ros::Time::now();
+        this->output.lineMsg.header.frame_id = this->output.lineLink;
+        this->output.linePublisher.publish(this->output.lineMsg);
+        
 		//	Wait
 		r.sleep();
 	}
@@ -94,6 +104,8 @@ void RedlineExtractorNode::cameraImageCallback(const sensor_msgs::Image::ConstPt
 {
 	//	Convert to Open CV image format
 	this->input.cvImage = cv_bridge::toCvCopy(data, imageEncoding::BGR8);
+	
+	//  Perspective warping
 }
 
 void RedlineExtractorNode::processImage(void)
@@ -119,16 +131,15 @@ void RedlineExtractorNode::processImage(void)
             if (excessRedValue > this->params.threshold)
             {
                 this->poiImage.at<cv::Vec3b>(i,j) = cv::Vec3b(255, 255, 255);               //  Assign white to the pixel of interest
+                
+                //  TODO: Homography
                 this->poiCloud.push_back(PointT((double)j,(double)i,0.0f));                 //  Add interest point to the point cloud
             }
 		}
 	}
-    
-    //  Convert data
-    pcl::toROSMsg(this->poiCloud, this->output.poiCloudMsg);
 }
 
-void RedlineExtractorNode::ransac (void)
+void RedlineExtractorNode::makeLineModels (void)
 {
     std::vector<int> ransacIndices;
     pcl::PointCloud<PointT> ransacPoints;
@@ -137,11 +148,96 @@ void RedlineExtractorNode::ransac (void)
     pcl::SampleConsensusModelLine<PointT>::Ptr lineModel(new pcl::SampleConsensusModelLine<PointT> (this->poiCloud.makeShared()));
     pcl::RandomSampleConsensus<PointT> ransac(lineModel);
     
-    //  Extract line
+    //  Extract line one if possible
     ransac.setDistanceThreshold(this->params.ransacDistance);
-    ransac.computeModel();
-    ransac.getInliers(ransacIndices);  
+    this->models.lineOneFound = ransac.computeModel();
+    ransac.getInliers(ransacIndices);
+    ransac.getModelCoefficients(this->models.lineOne);
     
-    pcl::copyPointCloud<pcl::PointXYZ>(this->poiCloud, ransacIndices, ransacPoints);
-    pcl::toROSMsg(ransacPoints, this->output.poiCloudMsg);
+    //  Extract points from poiCloud to ransacLineOne
+    pcl::copyPointCloud<pcl::PointXYZ>(this->poiCloud, ransacIndices, this->ransacLineOne);
+    
+    //  Remove points from poiCloud according to indices
+    pcl::PointCloud<PointT>::iterator it;
+    for (int i = ransacIndices.size() - 1; i >= 0; i--)
+    {
+        it = this->poiCloud.begin() + ransacIndices.at(i);
+        this->poiCloud.erase(it);
+    }
+    
+    //  Extract line two if possible
+    pcl::SampleConsensusModelLine<PointT>::Ptr lineModel1(new pcl::SampleConsensusModelLine<PointT> (this->poiCloud.makeShared()));
+    pcl::RandomSampleConsensus<PointT> ransac1(lineModel1);
+    ransacIndices.clear();
+    ransac1.setDistanceThreshold(this->params.ransacDistance);
+    this->models.lineTwoFound = ransac1.computeModel();
+    ransac1.getInliers(ransacIndices);
+    ransac1.getModelCoefficients(this->models.lineTwo);
+    
+    //  Extract points from poiCloud to ransacLineTwo
+    pcl::copyPointCloud<pcl::PointXYZ>(this->poiCloud, ransacIndices, this->ransacLineTwo);
+}
+
+void RedlineExtractorNode::generateMsg (void)
+{
+    double step = 100;
+    double x1, x2, a1, a2, y1, y2, b1, b2;
+    
+    this->output.lineMsg.lineOneFound = false;
+    this->output.lineMsg.lineTwoFound = false;
+    this->output.lineMsg.angle = .0;
+    this->output.lineMsg.lineOne.clear();
+    this->output.lineMsg.lineOne.push_back(.0);
+    this->output.lineMsg.lineOne.push_back(.0);
+    this->output.lineMsg.lineOne.push_back(.0);
+    this->output.lineMsg.lineOne.push_back(.0);
+    this->output.lineMsg.lineTwo.clear();
+    this->output.lineMsg.lineTwo.push_back(.0);
+    this->output.lineMsg.lineTwo.push_back(.0);
+    this->output.lineMsg.lineTwo.push_back(.0);
+    this->output.lineMsg.lineTwo.push_back(.0);
+    
+//    this->output.lineMsg.lineTwo = [.0,.0,.0,.0];
+    
+    if (this->models.lineOneFound)
+    {
+        x1 = this->models.lineOne.coeff(0),
+        x2 = this->models.lineOne.coeff(1),
+        a1 = this->models.lineOne.coeff(3),
+        a2 = this->models.lineOne.coeff(4);
+    
+        cv::Point p1(x1 - step * a1, x2 - step * a2), p2(x1 + step * a1, x2 + step * a2);
+        cv::line(this->poiImage, p1, p2, cv::Scalar(0,0,255));
+        
+        this->output.lineMsg.lineOneFound = true;
+        this->output.lineMsg.lineOne.clear();
+        this->output.lineMsg.lineOne.push_back(x1);
+        this->output.lineMsg.lineOne.push_back(x2);
+        this->output.lineMsg.lineOne.push_back(a1);
+        this->output.lineMsg.lineOne.push_back(a2);
+    }
+
+    if (this->models.lineTwoFound)
+    {
+        y1 = this->models.lineTwo.coeff(0),
+        y2 = this->models.lineTwo.coeff(1),
+        b1 = this->models.lineTwo.coeff(3),
+        b2 = this->models.lineTwo.coeff(4);
+
+        cv::Point p3(y1 - step * b1, y2 - step * b2), p4(y1 + step * b1, y2 + step * b2);
+        cv::line(this->poiImage, p3, p4, cv::Scalar(0,255,0));
+        
+        this->output.lineMsg.lineTwoFound = true;
+        this->output.lineMsg.lineTwo.clear();
+        this->output.lineMsg.lineTwo.push_back(y1);
+        this->output.lineMsg.lineTwo.push_back(y2);
+        this->output.lineMsg.lineTwo.push_back(b1);
+        this->output.lineMsg.lineTwo.push_back(b2);
+    }
+   
+    if (this->models.lineOneFound && this->models.lineTwoFound)
+        this->output.lineMsg.angle = std::acos(a1 * b1 + a2 * b2) * 180.0 / M_PI;
+   
+    //  Convert data
+    pcl::toROSMsg(this->poiCloud, this->output.poiCloudMsg);
 }
