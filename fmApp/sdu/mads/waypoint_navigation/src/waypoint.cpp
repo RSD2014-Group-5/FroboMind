@@ -137,7 +137,7 @@ bool obstacle_lasttry = false;
 
 bool WayPoint::obstacleDetection()
 {
-    double max_turn = 0.1;
+    double max_turn = 0.05;
 
     double errorObstacleAngle = 1;
     int angle;
@@ -370,6 +370,7 @@ double Input, Output, Setpoint;
 double errSum = 0;
 double lastErrAngle = 0;
 double lastErrDistance = 0;
+
 void WayPoint::gotoWaypoint()
 {
     double max_forwardspeed = 0.3;
@@ -489,6 +490,8 @@ void WayPoint::gotoWaypoint()
             //Resets the PD values and counters.
             lastErrAngle = 0;
             lastErrDistance = 0;
+            lastTime = 0;
+            errSum = 0;
 
             //Removes the waypoint.
             this->waypoints.erase(waypoints.begin());
