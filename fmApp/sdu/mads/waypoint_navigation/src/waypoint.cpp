@@ -370,7 +370,6 @@ double Input, Output, Setpoint;
 double errSum = 0;
 double lastErrAngle = 0;
 double lastErrDistance = 0;
-
 void WayPoint::gotoWaypoint()
 {
     double max_forwardspeed = 0.3;
