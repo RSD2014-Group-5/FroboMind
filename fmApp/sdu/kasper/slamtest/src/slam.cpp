@@ -289,7 +289,7 @@ void SLAMPose::GPSPoseCallback(const nav_msgs::OdometryConstPtr& gps_pose_msg)
 		angle_print_cnt++;
 //if(angle_print_cnt < 10)
 		reinittest();
-		//SendRobotAreaPosition(robot_pose);
+		SendRobotAreaPosition(robot_pose);
 		pose_pub.publish(robot_pose);
 	}
 }
