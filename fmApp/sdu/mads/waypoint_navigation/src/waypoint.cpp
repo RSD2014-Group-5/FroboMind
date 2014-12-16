@@ -29,7 +29,7 @@ WayPoint::WayPoint()
     local_nh.param<std::string>("waypoint_sub", parameters.waypoint_sub, "/fmCommand/waypoint");
     waypoint_sub = n.subscribe<sdu_rsd_waypoint::Waypoint>(parameters.waypoint_sub, 10, &WayPoint::waypointCallback, this);
 
-    local_nh.param<std::string>("odometry_sub", parameters.odometry_sub, "/odom");
+    local_nh.param<std::string>("odometry_sub", parameters.odometry_sub, "/fmKnowledge/pose");
     odometry_sub = n.subscribe<nav_msgs::Odometry>(parameters.odometry_sub, 10, &WayPoint::odometryCallback, this);
 
     local_nh.param<std::string>("laserscan_frame", parameters.laserscan_frame, "/laser");

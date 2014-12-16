@@ -62,8 +62,8 @@ SLAMPose::SLAMPose(int t)
 	Ramp_Out_B.x = 0.11;
 	Ramp_Out_B.y = -1.38;
 
-	Ramp_Out_C.x = 2.63;
-	Ramp_Out_C.y = -2.36;
+	Ramp_Out_C.x = 2.72;
+	Ramp_Out_C.y = -2.24;
 	corner_points.clear();
 	corner_points.push_back(Ramp_Out_A);
 	corner_points.push_back(Ramp_Out_B);
@@ -128,8 +128,8 @@ SLAMPose::SLAMPose(int t)
 		marker_array.markers.push_back(marker);
 	}
 
-	Dispenser_A.x = 2.63;
-	Dispenser_A.y = -2.36;
+	Dispenser_A.x = 2.72;
+	Dispenser_A.y = -2.24;
 
 	Dispenser_B.x = 3.58;
 	Dispenser_B.y = -2.77;
@@ -164,6 +164,10 @@ SLAMPose::SLAMPose(int t)
 		marker_array.markers.push_back(marker);
 	}
 
+	Dock1Dock2_inbox.x = 2.9478;
+	Dock1Dock2_inbox.y = -1.854;
+	Dock2Dock3_inbox.x = 3.3660;
+	Dock2Dock3_inbox.y = -2.1586;
 	Dock1Dock2_wall.x = 3.38;
 	Dock1Dock2_wall.y = -1.267;
 	Dock2Dock3_wall.x = 3.812;
@@ -172,9 +176,12 @@ SLAMPose::SLAMPose(int t)
 	RampIn_corner.y = -1.52;
 	Dock3_corner.x = 4.22;
 	Dock3_corner.y = -1.92;
+
 	corner_points.clear();
 	corner_points.push_back(Dock1Dock2_wall);
+	corner_points.push_back(Dock1Dock2_inbox);
 	corner_points.push_back(Dock2Dock3_wall);
+	corner_points.push_back(Dock2Dock3_inbox);
 	corner_points.push_back(RampIn_corner);
 	corner_points.push_back(Dock3_corner);
 
@@ -184,7 +191,7 @@ SLAMPose::SLAMPose(int t)
 		marker.header.frame_id = "/map";
 		marker.header.stamp = ros::Time();
 		marker.ns = "Docking stations";
-		marker.id = i+9;
+		marker.id = i+12;
 		marker.type = visualization_msgs::Marker::CUBE;
 		marker.action = visualization_msgs::Marker::ADD;
 		marker.pose.position.x = corner_points[i].x;
@@ -207,16 +214,32 @@ void SLAMPose::ReinitCallback(const std_msgs::Bool reinit_amcl)
 {
 	reinit = reinit_amcl.data;
 	/*
-	  		reinit_pose.pose.pose.position.x = odom_msg->pose.pose.position.x;
-			reinit_pose.pose.pose.position.y = odom_msg->pose.pose.position.y;
-			reinit_pose.pose.pose.position.z = odom_msg->pose.pose.position.z;
-			reinit_pose.pose.pose.orientation = odom_msg->pose.pose.orientation;
+			reinit_pose.pose.pose.position.x = 0.333693197925;
+			reinit_pose.pose.pose.position.y = -0.213405099882;
+			reinit_pose.pose.pose.position.z = 0;
+			reinit_pose.pose.pose.orientation.x = 0;
+			reinit_pose.pose.pose.orientation.y = 0;
+			reinit_pose.pose.pose.orientation.z = -0.309535494611;
+			reinit_pose.pose.pose.orientation.w = 0.950887889068;
 			reinit_pose.header.frame_id = "/map";
 			reinit_pose.header.stamp = ros::Time();
 			initialpose_pub.publish(reinit_pose);
-	 */
+	*/
 }
 
+void SLAMPose::reinittest()
+{
+	reinit_pose.pose.pose.position.x = 0.333693197925;
+	reinit_pose.pose.pose.position.y = -0.213405099882;
+	reinit_pose.pose.pose.position.z = 0;
+	reinit_pose.pose.pose.orientation.x = 0;
+	reinit_pose.pose.pose.orientation.y = 0;
+	reinit_pose.pose.pose.orientation.z = -0.309535494611;
+	reinit_pose.pose.pose.orientation.w = 0.950887889068;
+	reinit_pose.header.frame_id = "/map";
+	reinit_pose.header.stamp = ros::Time();
+	initialpose_pub.publish(reinit_pose);
+}
 void SLAMPose::NavModeCallback(const std_msgs::UInt32 nav_mode_msg)
 {
 	nav_mode = nav_mode_msg.data;
@@ -232,6 +255,14 @@ void SLAMPose::NavModeCallback(const std_msgs::UInt32 nav_mode_msg)
         reinit_pose.pose.pose.orientation.w = 0.950887889068;
 		reinit_pose.header.frame_id = "/map";
 		reinit_pose.header.stamp = ros::Time();
+		for(int i = 0; i < 36; i++)
+		{
+			reinit_pose.pose.covariance.elems[i] = 0.0;
+		}
+		reinit_pose.pose.covariance.elems[0] = 0.025;
+		reinit_pose.pose.covariance.elems[7] = 0.025;
+		reinit_pose.pose.covariance.elems[35] = 0.068538;
+
 		initialpose_pub.publish(reinit_pose);
 	}
 }
@@ -256,7 +287,9 @@ void SLAMPose::GPSPoseCallback(const nav_msgs::OdometryConstPtr& gps_pose_msg)
 		*/
 		ROS_INFO("Angle: %f", (tf::getYaw(robot_pose.pose.pose.orientation)*180)/M_PI);
 		angle_print_cnt++;
-		SendRobotAreaPosition(robot_pose);
+//if(angle_print_cnt < 10)
+		reinittest();
+		//SendRobotAreaPosition(robot_pose);
 		pose_pub.publish(robot_pose);
 	}
 }
@@ -294,7 +327,7 @@ void SLAMPose::PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg){
 			ROS_ERROR("%s",ex.what());
 		}
 	}
-	//updateMarkers();
+	updateMarkers();
 
 }
 
@@ -362,6 +395,7 @@ void SLAMPose::SendRobotAreaPosition(nav_msgs::Odometry current_pose)
 			{
 				robot_area_pos.data = "Dispenser";
 			}
+
 			else if(withinArea(Dock1Dock2_inbox,Dock1Dock2_wall,RampIn_corner, Robot_point))
 			{
 				robot_area_pos.data = "Station1";
@@ -374,6 +408,7 @@ void SLAMPose::SendRobotAreaPosition(nav_msgs::Odometry current_pose)
 			{
 				robot_area_pos.data = "Station3";
 			}
+
 		}
 		break;
 		case 2:
@@ -462,7 +497,4 @@ float SLAMPose::dotP(geometry_msgs::Point U, geometry_msgs::Point V)
 	return U.x*V.x+U.y*V.y;
 }
 
-void SLAMPose::LaserScanCallback(sensor_msgs::LaserScan laser_scan){
-
-}
 

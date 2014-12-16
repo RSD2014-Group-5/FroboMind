@@ -114,7 +114,6 @@ class SLAMPose
 
 
 		void PositionCallback(const nav_msgs::OdometryConstPtr& odom_msg);
-		void LaserScanCallback(sensor_msgs::LaserScan laser_scan);
 		void WaypointCallback(std_msgs::Bool wp_reached);
 		void ClickedPointCallback(geometry_msgs::PointStamped clicked_point);
 		void ReinitCallback(std_msgs::Bool reinit_amcl);
@@ -124,7 +123,7 @@ class SLAMPose
 		float dotP(geometry_msgs::Point U, geometry_msgs::Point V);
 		bool withinArea(geometry_msgs::Point A, geometry_msgs::Point B, geometry_msgs::Point C, geometry_msgs::Point R);
 		void updateMarkers();
-
+		void reinittest();
 };
 
 
