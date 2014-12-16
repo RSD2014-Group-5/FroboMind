@@ -496,13 +496,13 @@ void WayPoint::gotoWaypoint()
 void WayPoint::moveRobot(double forward, double turn)
 {
     //Limits forward speed.
-    double max_forwardspeed = 0.2;
+    double max_forwardspeed = 0.5;
     double forward_temp = forward;
     if(forward_temp > max_forwardspeed)
         forward_temp = max_forwardspeed;
 
     //Limits turn speed
-    double max_turn = 0.05;
+    double max_turn = 0.2;
     double temp_turn = turn;
     if(temp_turn > max_turn)
         temp_turn = max_turn;
